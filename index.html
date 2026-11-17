@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REHG POS & C-Suite Governance Telemetry Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-card: #0f172a;
+      --bg-input: #020617;
+      --border: #1e293b;
+      --gold: #d4af37;
+      --blue: #38bdf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --crimson: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    .topbar {
+      background: linear-gradient(90deg, #090d16, #111827);
+      border-bottom: 1.5px solid var(--gold);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-badge {
+      background: var(--gold);
+      color: #000;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-btn {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav-btn:hover { border-color: var(--blue); color: #fff; }
+    .nav-btn.active {
+      background: var(--blue);
+      color: #020617;
+      border-color: var(--blue);
+    }
+    .nav-btn.owner-tab.active {
+      background: var(--gold);
+      color: #020617;
+      border-color: var(--gold);
+    }
+    .live-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid var(--emerald);
+    }
+    .container { max-width: 1440px; margin: 0 auto; padding: 18px; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+    .pos-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 960px) { .pos-grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .cat-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .cat-btn {
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .cat-btn.active { border-color: var(--gold); color: var(--gold); }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 12px;
+    }
+    .item-tile {
+      background: linear-gradient(180deg, #131c31, #0b1120);
+      border: 1px solid #26334d;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.1s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 105px;
+    }
+    .item-tile:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .item-tile:active { transform: scale(0.98); }
+    .item-tile.vip { border-left: 4px solid var(--gold); }
+    .item-tile.kitchen { border-left: 4px solid var(--emerald); }
+    .item-tile.bar { border-left: 4px solid var(--blue); }
+    .item-name { font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 6px; }
+    .item-meta { display: flex; justify-content: space-between; align-items: center; }
+    .item-price { font-weight: 900; font-size: 15px; color: var(--emerald); }
+    .item-dept { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .ticket-header { display: flex; gap: 8px; margin-bottom: 12px; }
+    input, select {
+      background: var(--bg-input);
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+    .ticket-lines {
+      min-height: 240px;
+      max-height: 360px;
+      overflow-y: auto;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      margin-bottom: 12px;
+    }
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 6px;
+      border-bottom: 1px dashed #1e293b;
+      font-size: 13px;
+    }
+    .qty-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      background: #1e293b;
+      color: #fff;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .totals-box { font-size: 13px; display: grid; gap: 6px; margin-bottom: 14px; }
+    .totals-row { display: flex; justify-content: space-between; color: var(--text-muted); }
+    .totals-row.grand {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--emerald);
+      color: #020617;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+    }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-gold {
+      background: var(--gold);
+      color: #020617;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .kpi-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+    .kpi-val { font-size: 24px; font-weight: 900; margin: 4px 0; }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); }
+    .trapdoor-banner {
+      background: linear-gradient(90deg, #090d16, #1e1b4b);
+      border: 1px solid var(--blue);
+      border-left: 5px solid var(--gold);
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th {
+      text-align: left;
+      padding: 10px;
+      background: #090d16;
+      color: var(--gold);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    td { padding: 10px; border-bottom: 1px solid var(--border); }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
+    .field input, .field select { width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP EXECUTIVE NAVIGATION -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-badge">REHG OS</span>
+      <div>
+        <div style="font-weight:900;font-size:15px;">REHG Proprietary POS & Back-House Telemetry</div>
+        <div style="font-size:11px;color:var(--text-muted);">Venue: REHG Flagship Lounge • Target Guardrails: 14% Pour / 22% Food</div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-btn active" onclick="switchView('pos', this)">⚡ FOH POS Register</button>
+      <button class="nav-btn" onclick="switchView('loader', this)">📦 Owner Product Loader</button>
+      <button class="nav-btn owner-tab" onclick="switchView('csuite', this)">🏛️ Live C-Suite Governance (Owner Trapdoor)</button>
+    </div>
+
+    <div id="connectionStatus" class="live-pill">🟢 LIVE SUPABASE SYNC</div>
+  </div>
+
+  <div class="container">
+
+    <!-- VIEW 1: FRONT-OF-HOUSE POS REGISTER -->
+    <div id="view-pos" class="view-panel active">
+      <div class="pos-grid">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <div style="font-weight:900;font-size:14px;color:var(--blue);">TAP ITEM TO RING</div>
+            <div class="cat-filters" style="margin-bottom:0;">
+              <button class="cat-btn active" onclick="filterMenu('ALL', this)">All Items</button>
+              <button class="cat-btn" onclick="filterMenu('BAR', this)">🥃 Bar Well / Cocktails</button>
+              <button class="cat-btn" onclick="filterMenu('VIP_BOTTLE', this)">🍾 VIP Bottles</button>
+              <button class="cat-btn" onclick="filterMenu('KITCHEN', this)">🔥 Kitchen</button>
+            </div>
+          </div>
+          <div id="posMenuGrid" class="menu-grid">
+            <div style="color:var(--text-muted);font-size:13px;">Loading live menu from rehg-pos-core...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:900;font-size:14px;color:var(--gold);margin-bottom:10px;">ACTIVE REGISTER TICKET</div>
+          <div class="ticket-header">
+            <input type="text" id="tabNameInput" value="Bar Walk-In" placeholder="Tab / VIP Table Name" style="flex:1;font-weight:700;" />
+            <select id="orderTypeSelect">
+              <option value="BAR_WELL">Bar Well</option>
+              <option value="VIP_TABLE">VIP Table</option>
+              <option value="DINING">Dining</option>
+              <option value="TO_GO">To-Go</option>
+            </select>
+          </div>
+
+          <div id="ticketLines" class="ticket-lines">
+            <div style="color:var(--text-muted);text-align:center;padding:40px 10px;font-size:13px;">
+              Tap any product on the left to start a check.
+            </div>
+          </div>
+
+          <div class="totals-box">
+            <div class="totals-row"><span>Subtotal</span><span id="lblSubtotal">$0.00</span></div>
+            <div class="totals-row"><span>Tax (8.0%)</span><span id="lblTax">$0.00</span></div>
+            <div class="totals-row grand"><span>TOTAL DUE</span><span id="lblTotal" style="color:var(--emerald);">$0.00</span></div>
+          </div>
+
+          <button id="btnCheckout" class="btn-primary" onclick="processCheckout()">
+            💳 CLOSE CHECK & PUSH TO BACK-HOUSE
+          </button>
+          <div id="checkoutFeedback" style="margin-top:8px;font-size:12px;text-align:center;color:var(--emerald);font-weight:700;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: OWNER SIMPLE PRODUCT LOADER -->
+    <div id="view-loader" class="view-panel">
+      <div class="card" style="margin-bottom:16px;border-color:var(--gold);">
+        <div style="font-weight:900;font-size:15px;color:var(--gold);margin-bottom:4px;">
+          📦 OWNER QUICK-LOAD: ADD PRODUCT TO POS & GOVERNANCE ENGINE
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
+          Add any drink, VIP bottle, or kitchen plate once. It immediately appears on the FOH Register and automatically tracks theoretical depletion & margin offset roles in the back house.
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Product / Button Name</label>
+            <input type="text" id="newProdName" placeholder="e.g., Casamigos Blanco (1.5oz)" />
+          </div>
+          <div class="field">
+            <label>Department</label>
+            <select id="newProdDept">
+              <option value="BAR">🥃 Bar Well / Cocktail</option>
+              <option value="VIP_BOTTLE">🍾 VIP Whole Bottle</option>
+              <option value="KITCHEN">🔥 Kitchen / Food</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Category Label</label>
+            <input type="text" id="newProdCat" value="Spirits" placeholder="Spirits, Beer, VIP, Entrees" />
+          </div>
+          <div class="field">
+            <label>POS Menu Price ($)</label>
+            <input type="number" step="0.50" id="newProdPrice" placeholder="14.00" />
+          </div>
+          <div class="field">
+            <label>Wholesale Pour/Plate Cost ($)</label>
+            <input type="number" step="0.01" id="newProdCost" placeholder="1.85" />
+          </div>
+          <div class="field">
+            <label>Depletion Spec (oz or 1 Btl)</label>
+            <input type="number" step="0.25" id="newProdOz" value="1.50" />
+          </div>
+          <div class="field">
+            <label>REHG Margin Role</label>
+            <select id="newProdRole">
+              <option value="OFFSET_WORKHORSE">🐎 Offset Workhorse (High Margin)</option>
+              <option value="CEILING_DRIVER">🚨 Ceiling Driver (Prestige Cap)</option>
+              <option value="STANDARD">Standard Item</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn-gold" style="width:100%;" onclick="addNewProduct()">+ PUSH TO POS</button>
+          </div>
+        </div>
+        <div id="loaderFeedback" style="margin-top:8px;font-size:12px;color:var(--emerald);font-weight:700;"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:900;font-size:14px;margin-bottom:10px;">ACTIVE POS CATALOG & AUTO-CALCULATED MARGIN SPECS</div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Dept</th>
+                <th>Sell Price</th>
+                <th>Recipe Cost</th>
+                <th>Live Cost %</th>
+                <th>Depletion / Ring</th>
+                <th>Margin Strategy Role</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: LIVE C-SUITE GOVERNANCE & OWNER TRAPDOOR TELEMETRY -->
+    <div id="view-csuite" class="view-panel">
+      <div class="trapdoor-banner">
+        <strong style="color:var(--gold);">🏛️ REHG C-SUITE OWNER TRAPDOOR (LIVE REGISTER TELEMETRY):</strong><br/>
+        <span id="trapdoorSummaryText">Listening to live POS register events... Every check closed on the front-end automatically updates theoretical ounce depletion, VIP bottle counts, and 14%/22% margin offset balance below.</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Live Gross POS Revenue</div>
+          <div id="kpiLiveRev" class="kpi-val" style="color:var(--emerald);">$0.00</div>
+          <div id="kpiTicketCount" class="kpi-sub">0 Closed Checks</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Live Theoretical Pour / COGS %</div>
+          <div id="kpiLiveCogsPct" class="kpi-val" style="color:var(--blue);">0.0%</div>
+          <div class="kpi-sub">REHG Guardrail: ≤ 14.0% Bar / 22.0% Food</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Bar Well Theoretical Depletion</div>
+          <div id="kpiBarOzRung" class="kpi-val" style="color:var(--gold);">0.0 oz</div>
+          <div class="kpi-sub">Auto-fed to Tab 1.2 Whole-House AvT</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">VIP Whole Bottles Rung</div>
+          <div id="kpiVipBtlsRung" class="kpi-val" style="color:var(--amber);">0 Btls</div>
+          <div class="kpi-sub">Auto-deducted in Tab 1.5 Bottle Recon</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-weight:900;font-size:14px;color:var(--blue);">LIVE PMIX & THEORETICAL DEPLETION STREAM (REAL-TIME FROM REGISTER)</div>
+          <button class="cat-btn" onclick="refreshTelemetry()">🔄 Force Sync</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Item Rung</th>
+                <th>Units Sold (#)</th>
+                <th>Gross POS Sales ($)</th>
+                <th>Theoretical COGS ($)</th>
+                <th>Actual Cost %</th>
+                <th>Back-House Depletion Logged</th>
+              </tr>
+            </thead>
+            <tbody id="livePmixTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    // =========================================================================
+    // SUPABASE CONNECTION (REHG-POS-CORE)
+    // =========================================================================
+    const SUPABASE_URL = "https://ruvyxmpokjdzkagbitac.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VqSVbTVwxowgrMeRH3xWLw_UgcJohXH";
+    const VENUE_ID = "11111111-1111-1111-1111-111111111111";
+
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    let menuCatalog = [];
+    let activeCart = [];
+    let currentFilter = "ALL";
+
+    // NAVIGATION SWITCHER
+    function switchView(viewName, btn) {
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("view-" + viewName).classList.add("active");
+      btn.classList.add("active");
+      if (viewName === "csuite") refreshTelemetry();
+    }
+
+    // LOAD MENU FROM SUPABASE
+    async function loadMenuCatalog() {
+      const { data, error } = await db
+        .from("menu_items")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .eq("is_available", true)
+        .order("department", { ascending: true });
+
+      if (error) {
+        console.error("Menu load error:", error);
+        document.getElementById("connectionStatus").innerText = "⚠️ DB CONNECTION ERROR";
+        return;
+      }
+      menuCatalog = data || [];
+      renderPosMenu();
+      renderOwnerCatalogTable();
+    }
+
+    function filterMenu(dept, btn) {
+      currentFilter = dept;
+      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderPosMenu();
+    }
+
+    function renderPosMenu() {
+      const grid = document.getElementById("posMenuGrid");
+      const filtered = currentFilter === "ALL"
+        ? menuCatalog
+        : menuCatalog.filter(m => m.department === currentFilter);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="color:var(--text-muted);font-size:13px;">No items in this category yet. Use the Owner Product Loader tab to add items.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const cls = item.department === "VIP_BOTTLE" ? "vip" : (item.department === "KITCHEN" ? "kitchen" : "bar");
+        return `
+          <button class="item-tile ${cls}" onclick="addToCart('${item.id}')">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">
+              <span class="item-dept">${item.category}</span>
+              <span class="item-price">$${Number(item.sell_price).toFixed(2)}</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    // CART & REGISTER LOGIC
+    function addToCart(itemId) {
+      const product = menuCatalog.find(m => m.id === itemId);
+      if (!product) return;
+      const existing = activeCart.find(c => c.id === itemId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        activeCart.push({ ...product, qty: 1 });
+      }
+      if (product.department === "VIP_BOTTLE") {
+        document.getElementById("orderTypeSelect").value = "VIP_TABLE";
+      }
+      renderCart();
+    }
+
+    function updateCartQty(itemId, delta) {
+      const idx = activeCart.findIndex(c => c.id === itemId);
+      if (idx === -1) return;
+      activeCart[idx].qty += delta;
+      if (activeCart[idx].qty <= 0) activeCart.splice(idx, 1);
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById("ticketLines");
+      if (activeCart.length === 0) {
+        container.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:40px 10px;font-size:13px;">Tap any product on the left to start a check.</div>`;
+        document.getElementById("lblSubtotal").innerText = "$0.00";
+        document.getElementById("lblTax").innerText = "$0.00";
+        document.getElementById("lblTotal").innerText = "$0.00";
+        return;
+      }
+
+      let subtotal = 0;
+      container.innerHTML = activeCart.map(line => {
+        const lineTotal = Number(line.sell_price) * line.qty;
+        subtotal += lineTotal;
+        return `
+          <div class="ticket-row">
+            <div>
+              <div style="font-weight:800;">${line.name}</div>
+              <div style="font-size:11px;color:var(--text-muted);">$${Number(line.sell_price).toFixed(2)} each</div>
+            </div>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="updateCartQty('${line.id}', -1)">-</button>
+              <span style="font-weight:900;min-width:18px;text-align:center;">${line.qty}</span>
+              <button class="qty-btn" onclick="updateCartQty('${line.id}', 1)">+</button>
+              <span style="font-weight:900;color:var(--emerald);min-width:62px;text-align:right;">$${lineTotal.toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const tax = subtotal * 0.08;
+      const total = subtotal + tax;
+      document.getElementById("lblSubtotal").innerText = "$" + subtotal.toFixed(2);
+      document.getElementById("lblTax").innerText = "$" + tax.toFixed(2);
+      document.getElementById("lblTotal").innerText = "$" + total.toFixed(2);
+    }
+
+    // CHECKOUT -> WRITES LIVE TO ORDERS & ORDER_ITEMS
+    async function processCheckout() {
+      if (activeCart.length === 0) return;
+      const btn = document.getElementById("btnCheckout");
+      const fb = document.getElementById("checkoutFeedback");
+      btn.disabled = true;
+      btn.innerText = "⏳ SYNCING TO REHG CORE...";
+
+      const subtotal = activeCart.reduce((acc, l) => acc + (Number(l.sell_price) * l.qty), 0);
+      const tax = +(subtotal * 0.08).toFixed(2);
+      const total = +(subtotal + tax).toFixed(2);
+
+      // 1. Insert Order Header
+      const { data: orderData, error: orderErr } = await db
+        .from("orders")
+        .insert([{
+          venue_id: VENUE_ID,
+          table_or_tab: document.getElementById("tabNameInput").value || "Walk-In",
+          order_type: document.getElementById("orderTypeSelect").value,
+          status: "closed",
+          subtotal: subtotal,
+          tax: tax,
+          total: total,
+          closed_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (orderErr) {
+        fb.style.color = "var(--crimson)";
+        fb.innerText = "Error saving order: " + orderErr.message;
+        btn.disabled = false;
+        btn.innerText = "💳 CLOSE CHECK & PUSH TO BACK-HOUSE";
+        return;
+      }
+
+      // 2. Insert Line Items with Exact Theoretical Depletion
+      const linePayloads = activeCart.map(line => ({
+        order_id: orderData.id,
+        venue_id: VENUE_ID,
+        menu_item_id: line.id,
+        item_name: line.name,
+        quantity: line.qty,
+        unit_price: line.sell_price,
+        theoretical_depletion: Number(line.depletion_oz_or_units) * line.qty
+      }));
+
+      const { error: itemsErr } = await db.from("order_items").insert(linePayloads);
+
+      btn.disabled = false;
+      btn.innerText = "💳 CLOSE CHECK & PUSH TO BACK-HOUSE";
+
+      if (itemsErr) {
+        fb.style.color = "var(--crimson)";
+        fb.innerText = "Error saving items: " + itemsErr.message;
+        return;
+      }
+
+      activeCart = [];
+      renderCart();
+      fb.style.color = "var(--emerald)";
+      fb.innerText = `✓ Check Closed ($${total.toFixed(2)}) — Depletion & PMIX pushed live to C-Suite!`;
+      setTimeout(() => { fb.innerText = ""; }, 4000);
+    }
+
+    // OWNER PRODUCT LOADER
+    async function addNewProduct() {
+      const name = document.getElementById("newProdName").value.trim();
+      const dept = document.getElementById("newProdDept").value;
+      const cat  = document.getElementById("newProdCat").value.trim() || "General";
+      const price = parseFloat(document.getElementById("newProdPrice").value) || 0;
+      const cost  = parseFloat(document.getElementById("newProdCost").value) || 0;
+      const oz    = parseFloat(document.getElementById("newProdOz").value) || 1;
+      const role  = document.getElementById("newProdRole").value;
+      const fb    = document.getElementById("loaderFeedback");
+
+      if (!name || price <= 0) {
+        fb.style.color = "var(--crimson)";
+        fb.innerText = "Please enter a valid Product Name and Menu Price.";
+        return;
+      }
+
+      const { error } = await db.from("menu_items").insert([{
+        venue_id: VENUE_ID,
+        name: name,
+        department: dept,
+        category: cat,
+        sell_price: price,
+        recipe_cost: cost,
+        depletion_oz_or_units: oz,
+        margin_role: role
+      }]);
+
+      if (error) {
+        fb.style.color = "var(--crimson)";
+        fb.innerText = "Error: " + error.message;
+        return;
+      }
+
+      document.getElementById("newProdName").value = "";
+      document.getElementById("newProdPrice").value = "";
+      document.getElementById("newProdCost").value = "";
+      fb.style.color = "var(--emerald)";
+      fb.innerText = `✓ "${name}" is now live on the POS Register & Governance Engine!`;
+      await loadMenuCatalog();
+    }
+
+    function renderOwnerCatalogTable() {
+      const tbody = document.getElementById("catalogTableBody");
+      tbody.innerHTML = menuCatalog.map(m => {
+        const pct = m.sell_price > 0 ? ((m.recipe_cost / m.sell_price) * 100).toFixed(1) : "0.0";
+        const suffix = m.department === "BAR" ? " oz" : (m.department === "VIP_BOTTLE" ? " btl" : " unit");
+        return `
+          <tr>
+            <td style="font-weight:800;">${m.name}</td>
+            <td>${m.department}</td>
+            <td style="color:var(--emerald);font-weight:800;">$${Number(m.sell_price).toFixed(2)}</td>
+            <td>$${Number(m.recipe_cost).toFixed(2)}</td>
+            <td style="font-weight:900;color:${pct <= 18 ? 'var(--emerald)' : 'var(--amber)'};">${pct}%</td>
+            <td>${m.depletion_oz_or_units}${suffix}</td>
+            <td style="font-size:11px;color:var(--gold);font-weight:800;">${m.margin_role}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // LIVE C-SUITE TELEMETRY & OWNER TRAPDOOR ENGINE
+    async function refreshTelemetry() {
+      const { data: orders } = await db.from("orders").select("*").eq("venue_id", VENUE_ID).eq("status", "closed");
+      const { data: items }  = await db.from("order_items").select("*").eq("venue_id", VENUE_ID);
+
+      const closedOrders = orders || [];
+      const soldItems = items || [];
+
+      const grossRev = closedOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
+      document.getElementById("kpiLiveRev").innerText = "$" + grossRev.toFixed(2);
+      document.getElementById("kpiTicketCount").innerText = `${closedOrders.length} Closed Checks`;
+
+      // Aggregate PMIX & Theoretical Depletion
+      const pmixMap = {};
+      let totalCogs = 0;
+      let totalBarOz = 0;
+      let totalVipBtls = 0;
+
+      soldItems.forEach(row => {
+        const catalogRef = menuCatalog.find(m => m.id === row.menu_item_id) || {};
+        const unitCost = Number(catalogRef.recipe_cost) || 0;
+        const dept = catalogRef.department || "BAR";
+        const lineRev = Number(row.unit_price) * row.quantity;
+        const lineCogs = unitCost * row.quantity;
+        const dep = Number(row.theoretical_depletion) || 0;
+
+        totalCogs += lineCogs;
+        if (dept === "BAR") totalBarOz += dep;
+        if (dept === "VIP_BOTTLE") totalVipBtls += dep;
+
+        if (!pmixMap[row.item_name]) {
+          pmixMap[row.item_name] = { name: row.item_name, dept, qty: 0, rev: 0, cogs: 0, dep: 0 };
+        }
+        pmixMap[row.item_name].qty += row.quantity;
+        pmixMap[row.item_name].rev += lineRev;
+        pmixMap[row.item_name].cogs += lineCogs;
+        pmixMap[row.item_name].dep += dep;
+      });
+
+      const blendedPct = grossRev > 0 ? ((totalCogs / grossRev) * 100).toFixed(1) : "0.0";
+      document.getElementById("kpiLiveCogsPct").innerText = blendedPct + "%";
+      document.getElementById("kpiBarOzRung").innerText = totalBarOz.toFixed(1) + " oz";
+      document.getElementById("kpiVipBtlsRung").innerText = totalVipBtls + " Btls";
+
+      document.getElementById("trapdoorSummaryText").innerHTML =
+        `Live Blended Theoretical Cost: <strong style="color:var(--emerald);">${blendedPct}%</strong> on <strong>$${grossRev.toFixed(2)}</strong> net sales • ` +
+        `<strong>${totalBarOz.toFixed(1)} oz</strong> deducted from Bar Well theoretical balance • ` +
+        `<strong>${totalVipBtls} VIP bottle(s)</strong> logged for Tab 1.5 Whole-House Reconciliation.`;
+
+      const tbody = document.getElementById("livePmixTableBody");
+      const rows = Object.values(pmixMap);
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:18px;">No checks closed yet. Ring an order on the FOH POS Register tab to see live telemetry populate here!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const pct = r.rev > 0 ? ((r.cogs / r.rev) * 100).toFixed(1) : "0.0";
+        const depLabel = r.dept === "BAR" ? `${r.dep.toFixed(1)} oz poured` : (r.dept === "VIP_BOTTLE" ? `${r.dep} whole bottle(s)` : `${r.dep} portion(s)`);
+        return `
+          <tr>
+            <td style="font-weight:800;">${r.name}</td>
+            <td style="font-weight:800;color:var(--blue);">${r.qty}</td>
+            <td style="font-weight:800;color:var(--emerald);">$${r.rev.toFixed(2)}</td>
+            <td>$${r.cogs.toFixed(2)}</td>
+            <td style="font-weight:900;">${pct}%</td>
+            <td style="color:var(--gold);font-weight:700;">${depLabel}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // SUBSCRIBE TO REAL-TIME POSTGRES CHANGES
+    db.channel("rehg-live-pos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => refreshTelemetry())
+      .on("postgres_changes", { event: "*", schema: "public", table: "menu_items" }, () => loadMenuCatalog())
+      .subscribe();
+
+    // BOOT
+    loadMenuCatalog().then(() => refreshTelemetry());
+  </script>
+</body>
+</html>
