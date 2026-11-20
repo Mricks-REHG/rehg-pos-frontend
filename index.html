@@ -1825,6 +1825,44 @@
       await _prevLoadEngines();
       renderManagerOpenChecks();
     };
+// =========================================================================
+    // FIX MENU ITEM CREATION (AUTO-MAP MANDATORY DEPARTMENT COLUMN)
+    // =========================================================================
+    createMenuItem = async function() {
+      const name = document.getElementById("add-item-name").value.trim();
+      const category = document.getElementById("add-item-cat").value;
+      const price = parseFloat(document.getElementById("add-item-price").value || "0");
+      const wholesale_cogs = parseFloat(document.getElementById("add-item-cogs").value || "0");
+      const speed_screen_priority = parseInt(document.getElementById("add-item-priority").value || "10");
+      if (!name) return alert("Enter an item name.");
+
+      const catUpper = (category || "SPIRITS").toUpperCase();
+      const department = (catUpper === "KITCHEN" || catUpper === "FOOD") ? "FOOD" : "BAR";
+
+      const { data, error } = await db.from("menu_items").insert({
+        venue_id: VENUE_ID,
+        name: name,
+        department: department,
+        category: category,
+        price: price,
+        wholesale_cogs: wholesale_cogs,
+        speed_screen_priority: speed_screen_priority,
+        packaging_recipe: department === "FOOD"
+          ? [{ item: "Food Boat / Basket", qty: 1 }, { item: "Black Napkin", qty: 2 }]
+          : [{ item: "12oz Rocks Cup", qty: 1 }, { item: "Black Bev Nap", qty: 1 }]
+      }).select().single();
+
+      if (error) return alert("Error adding item: " + error.message);
+
+      menuItems.push(data);
+      menuItems.sort(function(a, b) { return (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99); });
+      renderMenuGrid();
+      renderAdminMenuList();
+      document.getElementById("add-item-name").value = "";
+      document.getElementById("add-item-price").value = "";
+      document.getElementById("add-item-cogs").value = "";
+      alert("✅ '" + name + "' (" + department + ") added live to Carbon Terminal!");
+    };
     
     initCarbonOS();
   </script>
