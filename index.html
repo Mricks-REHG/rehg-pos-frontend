@@ -402,33 +402,55 @@
   <!-- VIEW 4: REHG CARBON EXECUTION ENGINES (OWNER & ADMIN C-SUITE)         -->
   <!-- ===================================================================== -->
   <section id="view-engines" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="titanium-panel rounded-2xl p-5">
-        <div class="text-xs text-slate-400 font-bold uppercase">Gross Revenue</div>
-        <div id="kpi-revenue" class="text-2xl font-black text-white mt-1">$0.00</div>
-        <div class="text-[11px] text-emerald-400 mt-1">Live Supabase Sync</div>
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div>
+        <span class="text-xs font-bold uppercase text-amber-400">Pillar 4 Executive Telemetry</span>
+        <h2 class="text-2xl font-black text-white">🏛️ Carbon Execution Engines & Live P&L</h2>
+        <p class="text-xs text-slate-400 mt-1">Real-time gross sales, Owner's Skin COGS guardrails (14% Bar / 22% Food), labor cost & nightly Z-Report</p>
       </div>
-      <div class="titanium-panel rounded-2xl p-5">
-        <div class="text-xs text-slate-400 font-bold uppercase">Owner's Skin COGS</div>
-        <div id="kpi-ownerskin" class="text-2xl font-black text-amber-400 mt-1">$0.00</div>
-        <div class="text-[11px] text-slate-400 mt-1">Isolated from Retail Comps</div>
-      </div>
-      <div class="titanium-panel rounded-2xl p-5">
-        <div class="text-xs text-slate-400 font-bold uppercase">Guest Count (Model A / B)</div>
-        <div id="kpi-guests" class="text-2xl font-black text-sky-400 mt-1">0 / 0</div>
-        <div class="text-[11px] text-slate-400 mt-1">Stated vs. Item-Driven</div>
-      </div>
-      <div class="titanium-panel rounded-2xl p-5">
-        <div class="text-xs text-slate-400 font-bold uppercase">Connected Engines</div>
-        <div class="text-sm font-black text-emerald-400 mt-2">● Carbon Feeder™</div>
-        <div class="text-sm font-black text-emerald-400">● DIY Kitchen Engine™</div>
+      <div class="flex items-center gap-2">
+        <button onclick="loadExecutionEngines()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Live Telemetry</button>
+        <button onclick="runNightlyEodCloseout()" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase transition">🔒 Run Nightly EOD Z-Report</button>
       </div>
     </div>
 
-    <div class="titanium-panel rounded-2xl p-6">
-      <h3 class="text-sm font-black uppercase tracking-wider text-amber-400 mb-3">Live Governance & Override Audit Feed</h3>
-      <div id="audit-feed-list" class="space-y-2 text-xs text-slate-300">
-        <div>No recent tickets or overrides logged yet.</div>
+    <!-- 4 LIVE KPI GUARDRAIL CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="titanium-panel rounded-2xl p-4 space-y-1">
+        <span class="text-[11px] font-bold uppercase text-slate-400">Closed Gross Sales</span>
+        <div id="eng-gross-sales" class="text-2xl font-black text-white">$0.00</div>
+        <div id="eng-checks-count" class="text-[11px] text-emerald-400 font-bold">0 closed checks • 0 open tabs</div>
+      </div>
+
+      <div class="titanium-panel rounded-2xl p-4 space-y-1">
+        <span class="text-[11px] font-bold uppercase text-slate-400">Owner's Skin COGS & Pour %</span>
+        <div id="eng-total-cogs" class="text-2xl font-black text-amber-400">$0.00</div>
+        <div id="eng-cogs-guardrail" class="text-[11px] text-slate-300 font-bold">0.0% COGS (Target ≤ 18%)</div>
+      </div>
+
+      <div class="titanium-panel rounded-2xl p-4 space-y-1">
+        <span class="text-[11px] font-bold uppercase text-slate-400">Live Shift Labor & Tips</span>
+        <div id="eng-labor-cost" class="text-2xl font-black text-sky-400">$0.00</div>
+        <div id="eng-tips-total" class="text-[11px] text-slate-300 font-bold">Declared Tips: $0.00</div>
+      </div>
+
+      <div class="titanium-panel rounded-2xl p-4 space-y-1">
+        <span class="text-[11px] font-bold uppercase text-slate-400">Net Contribution Margin</span>
+        <div id="eng-net-margin" class="text-2xl font-black text-emerald-400">$0.00</div>
+        <div id="eng-voids-total" class="text-[11px] text-rose-400 font-bold">Voids/Comps: $0.00</div>
+      </div>
+    </div>
+
+    <!-- TOP SELLERS + CLOSED Z-REPORTS HISTORY -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-white">📊 Top-Performing Menu Items (Retail vs COGS)</h3>
+        <div id="eng-top-items" class="space-y-2 text-xs"></div>
+      </div>
+
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">🧾 Nightly EOD Z-Report Vault</h3>
+        <div id="eng-eod-history" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </section>
@@ -1419,7 +1441,166 @@ async function createMenuItem() {
       _origSwitchTab(tabName);
       if (tabName === "timeclock") loadTimeclockAndAudits();
     };
-    setTimeout(() => { if (currentStaff) loadTimeclockAndAudits(); }, 1500);    
+    setTimeout(() => { if (currentStaff) loadTimeclockAndAudits(); }, 1500);   
+// =========================================================================
+    // PILLAR 4: CARBON EXECUTION ENGINES (LIVE P&L GUARDRAILS & EOD Z-REPORT)
+    // =========================================================================
+    let latestEngineSnapshot = null;
+
+    async function loadExecutionEngines() {
+      // 1. Fetch closed & open orders
+      const { data: orders } = await db.from("orders")
+        .select("*")
+        .eq("venue_id", VENUE_ID);
+
+      const allOrders = orders || [];
+      const closedOrders = allOrders.filter(o => (o.status || "CLOSED") === "CLOSED");
+      const openOrders = allOrders.filter(o => o.status === "OPEN");
+
+      const grossSales = closedOrders.reduce((s, o) => s + Number(o.total_retail || 0), 0);
+      const totalCogs = closedOrders.reduce((s, o) => s + Number(o.total_cogs || 0), 0);
+      const cogsPct = grossSales > 0 ? (totalCogs / grossSales) * 100 : 0;
+
+      // 2. Fetch shifts for live labor & declared tips
+      const { data: shifts } = await db.from("timeclock_shifts")
+        .select("*")
+        .eq("venue_id", VENUE_ID);
+
+      let laborCost = 0;
+      let declaredTips = 0;
+      (shifts || []).forEach(sh => {
+        const start = new Date(sh.clock_in).getTime();
+        const end = sh.clock_out ? new Date(sh.clock_out).getTime() : Date.now();
+        const hrs = Math.max(0, (end - start) / 3600000);
+        laborCost += hrs * Number(sh.hourly_rate || 0);
+        declaredTips += Number(sh.cash_tips || 0) + Number(sh.cc_tips || 0);
+      });
+
+      // 3. Fetch manager override audits for voids/comps
+      const { data: audits } = await db.from("governance_audits")
+        .select("*")
+        .eq("venue_id", VENUE_ID);
+
+      const voidsCompsTotal = (audits || [])
+        .filter(a => ["VOID_TICKET", "COMP_DISC"].includes(a.action_type))
+        .reduce((s, a) => s + Number(a.amount_affected || 0), 0);
+
+      const netMargin = grossSales - totalCogs - laborCost;
+
+      latestEngineSnapshot = {
+        gross_sales: grossSales,
+        total_cogs: totalCogs,
+        net_margin: netMargin,
+        cogs_pct: cogsPct,
+        labor_cost: laborCost,
+        declared_tips: declaredTips,
+        voids_comps_total: voidsCompsTotal,
+        closed_checks_count: closedOrders.length,
+        open_tabs_carried: openOrders.length
+      };
+
+      // Update KPI Cards
+      const el = id => document.getElementById(id);
+      if (el("eng-gross-sales")) el("eng-gross-sales").textContent = `$${grossSales.toFixed(2)}`;
+      if (el("eng-checks-count")) el("eng-checks-count").textContent = `${closedOrders.length} closed checks • ${openOrders.length} open tabs`;
+      if (el("eng-total-cogs")) el("eng-total-cogs").textContent = `$${totalCogs.toFixed(2)}`;
+
+      const guardEl = el("eng-cogs-guardrail");
+      if (guardEl) {
+        const healthy = cogsPct <= 18.0;
+        guardEl.textContent = `${cogsPct.toFixed(1)}% COGS (${healthy ? "✓ WITHIN GUARDRAIL" : "⚠ ABOVE 18% TARGET"})`;
+        guardEl.className = `text-[11px] font-bold ${healthy ? "text-emerald-400" : "text-rose-400"}`;
+      }
+
+      if (el("eng-labor-cost")) el("eng-labor-cost").textContent = `$${laborCost.toFixed(2)}`;
+      if (el("eng-tips-total")) el("eng-tips-total").textContent = `Declared Tips: $${declaredTips.toFixed(2)}`;
+      if (el("eng-net-margin")) el("eng-net-margin").textContent = `$${netMargin.toFixed(2)}`;
+      if (el("eng-voids-total")) el("eng-voids-total").textContent = `Voids/Comps: $${voidsCompsTotal.toFixed(2)}`;
+
+      // 4. Aggregate Top-Performing Menu Items
+      const itemMap = {};
+      closedOrders.forEach(o => {
+        (o.items || []).forEach(i => {
+          const key = i.name || "Item";
+          if (!itemMap[key]) itemMap[key] = { name: key, qty: 0, rev: 0, cogs: 0 };
+          itemMap[key].qty += Number(i.qty || 1);
+          itemMap[key].rev += Number(i.price || 0) * Number(i.qty || 1);
+          itemMap[key].cogs += Number(i.wholesale_cogs || 0) * Number(i.qty || 1);
+        });
+      });
+
+      const topItems = Object.values(itemMap).sort((a, b) => b.rev - a.rev).slice(0, 6);
+      if (el("eng-top-items")) {
+        el("eng-top-items").innerHTML = topItems.length
+          ? topItems.map(it => {
+              const marginPct = it.rev > 0 ? (((it.rev - it.cogs) / it.rev) * 100).toFixed(0) : 100;
+              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-white">${it.qty}x ${it.name}</span>
+                  <span class="text-[11px] text-slate-400 ml-2">COGS: $${it.cogs.toFixed(2)}</span>
+                </div>
+                <div class="text-right">
+                  <span class="font-black text-emerald-400">$${it.rev.toFixed(2)}</span>
+                  <span class="text-[10px] text-slate-400 ml-1.5">(${marginPct}% margin)</span>
+                </div>
+              </div>`;
+            }).join("")
+          : `<p class="text-slate-500">Close checks on the register to populate live product telemetry.</p>`;
+      }
+
+      // 5. Load EOD Z-Report History
+      const { data: zReports } = await db.from("eod_reports")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (el("eng-eod-history")) {
+        el("eng-eod-history").innerHTML = (zReports && zReports.length)
+          ? zReports.map(z => {
+              const dt = new Date(z.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">
+                <div class="flex justify-between font-bold">
+                  <span class="text-emerald-400">Z-Report • ${dt}</span>
+                  <span class="text-white">Sales: $${Number(z.gross_sales || 0).toFixed(2)}</span>
+                </div>
+                <div class="text-[11px] text-slate-400">COGS: ${Number(z.cogs_pct || 0).toFixed(1)}% • Net: $${Number(z.net_margin || 0).toFixed(2)} • Closed by ${z.closed_by}</div>
+              </div>`;
+            }).join("")
+          : `<p class="text-slate-500">No EOD Z-Reports closed yet.</p>`;
+      }
+    }
+
+    async function runNightlyEodCloseout() {
+      if (!currentStaff) return alert("Log in first.");
+      if (!latestEngineSnapshot) await loadExecutionEngines();
+
+      const warnOpen = latestEngineSnapshot.open_tabs_carried > 0
+        ? `\n⚠️ WARNING: ${latestEngineSnapshot.open_tabs_carried} open tab(s) are still unclosed.`
+        : "";
+      const notes = prompt(`🔒 RUN NIGHTLY EOD Z-REPORT\nGross Sales: $${latestEngineSnapshot.gross_sales.toFixed(2)} | COGS: ${latestEngineSnapshot.cogs_pct.toFixed(1)}% | Net Margin: $${latestEngineSnapshot.net_margin.toFixed(2)}${warnOpen}\n\nEnter optional EOD manager notes (or leave blank):`);
+      if (notes === null) return;
+
+      const { error } = await db.from("eod_reports").insert({
+        venue_id: VENUE_ID,
+        closed_by: currentStaff.full_name,
+        closed_by_tier: currentStaff.role_tier || currentStaff.role || "Owner",
+        ...latestEngineSnapshot,
+        notes: notes.trim() || "Standard nightly batch closeout"
+      });
+
+      if (error) return alert("EOD Z-Report error: " + error.message);
+      await loadExecutionEngines();
+      alert("✅ Nightly EOD Z-Report locked and archived to Supabase!");
+    }
+
+    // Hook into switchTab so opening Carbon Execution Engines loads live telemetry immediately
+    const _origSwitchTabP4 = switchTab;
+    switchTab = function(tabName) {
+      _origSwitchTabP4(tabName);
+      if (tabName === "engines") loadExecutionEngines();
+    };
+    
     initCarbonOS();
   </script>
 </body>
