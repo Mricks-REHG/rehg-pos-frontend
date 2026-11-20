@@ -22,7 +22,6 @@
   <!-- TOP TELEMETRY & BRAND HEADER -->
   <header class="border-b border-slate-800 bg-slate-950/90 px-5 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30">
     <div class="flex items-center gap-3">
-      <!-- Titanium Hexagon "C" Emblem -->
       <div class="w-10 h-10 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
           <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" stroke="#94a3b8" stroke-width="2" fill="#0f172a"/>
@@ -39,16 +38,16 @@
       </div>
     </div>
 
-    <!-- ROLE NAVIGATION TABS (Dynamically Filtered by 7-Tier Role) -->
+    <!-- ROLE NAVIGATION TABS -->
     <nav id="main-nav" class="hidden flex-wrap items-center gap-2">
       <button onclick="switchTab('terminal')" id="tab-terminal" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition">⚡ Carbon Terminal</button>
       <button onclick="switchTab('timeclock')" id="tab-timeclock" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">⏱️ Timeclock & Tips</button>
-      <button onclick="switchTab('loader')" id="tab-loader" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">📦 Menu & 86 Editor</button>
-      <button onclick="switchTab('kds')" id="tab-kds" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5">
-          <span>🔥 KDS & Bar Prep</span>
-          <span id="kds-badge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">0</span>
-        </button>
-      <button onclick="switchTab('engines')" id="tab-engines" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🏛️ Carbon Execution Engines</button>
+      <button onclick="switchTab('kds')" id="tab-kds" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition flex items-center gap-1.5">
+        <span>🔥 KDS & Bar Prep</span>
+        <span id="kds-badge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">0</span>
+      </button>
+      <button onclick="switchTab('loader')" id="tab-loader" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">⚙️ Menu & Staff</button>
+      <button onclick="switchTab('engines')" id="tab-engines" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🏛️ Execution Engines</button>
     </nav>
 
     <!-- STATUS & ACTIVE STAFF SESSION -->
@@ -81,9 +80,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- VIEW 0: 7-TIER STAFF PIN / BIOMETRIC / NFC LOCK SCREEN                -->
-  <!-- ===================================================================== -->
+  <!-- VIEW 0: 7-TIER STAFF PIN / BIOMETRIC LOCK SCREEN -->
   <main id="view-lockscreen" class="flex-1 flex items-center justify-center p-6">
     <div class="titanium-panel rounded-2xl max-w-md w-full p-8 shadow-2xl">
       <div class="text-center mb-6">
@@ -94,7 +91,6 @@
         <p class="text-xs text-slate-400 mt-1">UI & permissions load automatically per profile tier</p>
       </div>
 
-      <!-- PIN DOTS DISPLAY -->
       <div class="flex justify-center gap-4 mb-6">
         <div id="dot-1" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
         <div id="dot-2" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
@@ -104,7 +100,6 @@
 
       <div id="pin-error" class="hidden text-center text-xs font-bold text-rose-400 mb-4">Invalid PIN. Try again.</div>
 
-      <!-- KEYPAD -->
       <div class="grid grid-cols-3 gap-3 mb-5">
         <button onclick="pressPin('1')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">1</button>
         <button onclick="pressPin('2')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">2</button>
@@ -120,7 +115,6 @@
         <button onclick="simulateBiometricLogin()" class="pin-btn py-4 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-600/50 text-[11px] font-bold text-emerald-300 uppercase">🪪 NFC / Bio</button>
       </div>
 
-      <!-- DEMO ROLE QUICK-LAUNCH REFERENCE -->
       <div class="border-t border-slate-800 pt-4 text-[11px] text-slate-400">
         <div class="font-bold text-slate-300 mb-1.5 uppercase tracking-wider">7-Tier Test PINs (Seeded):</div>
         <div class="grid grid-cols-2 gap-1.5">
@@ -135,15 +129,12 @@
     </div>
   </main>
 
-  <!-- ===================================================================== -->
-  <!-- VIEW 1: CARBON TERMINAL (BARTENDER SPEED SCREEN & TABLE FLOOR UI)     -->
-  <!-- ===================================================================== -->
+  <!-- VIEW 1: CARBON TERMINAL -->
   <section id="view-terminal" class="hidden flex-1 p-5 max-w-[1600px] w-full mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-      <!-- LEFT 7 COLS: SPEED SCREEN / FLOOR PLAN & MENU GRID -->
+      <!-- LEFT 7 COLS: MENU GRID & FLOOR TABLES -->
       <div class="lg:col-span-7 titanium-panel rounded-2xl p-5 flex flex-col gap-4">
-        <!-- SERVICE MODE & GUEST COUNT CONTROL BAR -->
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div class="flex items-center gap-2">
             <button onclick="setServiceMode('FAST_BAR')" id="mode-fastbar" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950">⚡ Bartender Speed Screen</button>
@@ -151,7 +142,6 @@
             <button onclick="toggleOwnerSkin()" id="mode-ownerskin" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50">👑 Owner's Skin (At-Cost COGS)</button>
           </div>
 
-          <!-- INLINE GUEST COUNT PILL (Always accessible on Speed Screen; Forced on Table Service) -->
           <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
             <span class="text-[11px] font-bold text-slate-400 uppercase mr-1">Guests (Model A):</span>
             <button onclick="setGuestCount(1)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950" data-gc="1">1</button>
@@ -162,7 +152,6 @@
           </div>
         </div>
 
-        <!-- TABLE SELECTOR BAR (Visible in Table Service Mode) -->
         <div id="floor-plan-strip" class="hidden bg-slate-950/80 border border-slate-800 rounded-xl p-3">
           <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Select Table / VIP Booth (Forces Guest Count):</div>
           <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -175,47 +164,31 @@
           </div>
         </div>
 
-        <!-- RAPID CALL / MODIFIER STRIP (Speed Screen Priority) -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <span class="text-[10px] font-bold text-slate-500 uppercase mr-1">Quick Mods:</span>
-          <button onclick="appendMod('Neat')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-300">Neat</button>
-          <button onclick="appendMod('Rocks')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-300">Rocks</button>
-          <button onclick="appendMod('Double')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-amber-300">Double</button>
-          <button onclick="appendMod('Red Bull')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-sky-300">+ Red Bull</button>
-          <button onclick="appendMod('Lime / Salt')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-emerald-300">Lime/Salt</button>
-        </div>
-
-        <!-- MENU BUTTONS GRID (Sorted by Speed Priority) -->
-        <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <!-- Populated dynamically from Supabase -->
-        </div>
+        <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
       </div>
 
-      <!-- RIGHT 5 COLS: ACTIVE TICKET, MODEL B PACKAGING TELEMETRY & OVERRIDES -->
+      <!-- RIGHT 5 COLS: ACTIVE TICKET, OPEN TABS & AUTO-CLAIMED CC TIP -->
       <div class="lg:col-span-5 titanium-panel rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
             <div>
               <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Active Carbon Ticket</span>
-              <input id="ticket-tab-name" type="text" value="Bar Walk-In" class="block bg-transparent text-lg font-black text-white focus:outline-none border-b border-transparent focus:border-sky-500" />
+              <input id="ticket-tab-name" type="text" value="Bar Walk-In" oninput="document.getElementById('active-tab-name').value=this.value" class="block bg-transparent text-lg font-black text-white focus:outline-none border-b border-transparent focus:border-sky-500" />
             </div>
             <div class="text-right">
               <div class="text-[11px] text-slate-400">Stated Guests: <span id="ticket-gc-stated" class="text-white font-bold">1</span></div>
-              <div class="text-[11px] text-emerald-400">Model B Est. Guests: <span id="ticket-gc-calc" class="font-bold">1</span></div>
+              <div class="text-[11px] text-emerald-400">Model B Est. Guests: <span id="ticket-gc-calc" class="font-bold">0</span></div>
             </div>
           </div>
 
-          <!-- OWNER'S SKIN ACTIVE BANNER -->
-          <div id="owner-skin-banner" class="hidden mb-3 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between">
-            <span>👑 <strong>OWNER'S SKIN ACTIVE:</strong> Billed at wholesale COGS & emailed in EOD audit.</span>
+          <div id="owner-skin-banner" class="hidden mb-3 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs">
+            👑 <strong>OWNER'S SKIN ACTIVE:</strong> Billed at wholesale COGS & logged in EOD audit.
           </div>
 
-          <!-- TICKET LINE ITEMS -->
           <div id="ticket-items" class="space-y-2 max-h-64 overflow-y-auto pr-1 mb-4">
             <div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>
           </div>
 
-          <!-- MODEL B LIVE PACKAGING & DRY GOODS DEPLETION PREVIEW -->
           <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 mb-4">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">📦 Model B Live Packaging & Dry Goods Burn</span>
@@ -225,7 +198,6 @@
           </div>
         </div>
 
-        <!-- TOTALS & ACTION CONTROLS -->
         <div class="border-t border-slate-800 pt-4 space-y-3">
           <div class="flex justify-between text-xs text-slate-400">
             <span>Subtotal</span>
@@ -240,18 +212,24 @@
             <span id="ticket-total" class="text-emerald-400">$0.00</span>
           </div>
 
-          <!-- PROTECTED MANAGER OVERRIDE ACTIONS -->
           <div class="grid grid-cols-3 gap-2 pt-1">
             <button onclick="requestManagerOverride('COMP_ITEM')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-amber-300">🔒 Comp / Disc</button>
             <button onclick="requestManagerOverride('VOID_TICKET')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-rose-300">🔒 Void Check</button>
             <button onclick="requestManagerOverride('TRANSFER_CHECK')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-sky-300">🔒 Transfer</button>
           </div>
-          <!-- PILLAR 2: TAB NAME + HOLD & SEND TO KDS / BAR -->
+
           <div class="grid grid-cols-3 gap-2">
-            <input id="active-tab-name" type="text" placeholder="Tab / VIP Table (e.g. Booth 1)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold" />
+            <input id="active-tab-name" type="text" placeholder="Tab / VIP Table (e.g. Booth 1)" oninput="document.getElementById('ticket-tab-name').value=this.value||'Bar Walk-In'" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold" />
             <button onclick="holdOpenTab()" class="py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-black text-xs uppercase transition">📌 Hold Tab</button>
           </div>
+
           <div id="open-tabs-strip" class="flex flex-wrap gap-1.5"></div>
+
+          <div class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            <span class="text-xs font-bold text-emerald-400">💳 CC Tip (Auto-Claimed to Shift):</span>
+            <input id="ticket-cc-tip" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-xs font-black text-white" />
+          </div>
+
           <button onclick="closeAndPushCheck()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition">
             💳 CLOSE CHECK & PUSH TO EXECUTION ENGINES
           </button>
@@ -259,17 +237,14 @@
       </div>
     </div>
   </section>
-
-  <!-- ===================================================================== -->
-  <!-- VIEW 2: TIMECLOCK & TIP DECLARATION (ALL ROLES INCLUDING BARBACK/DOOR)-->
-  <!-- ===================================================================== -->
+  <!-- VIEW 2: TIMECLOCK & AUTO-CLAIMED TIP DECLARATION -->
   <section id="view-timeclock" class="hidden flex-1 p-6 max-w-4xl w-full mx-auto space-y-6">
     <div class="titanium-panel rounded-2xl p-6 space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <span class="text-xs font-bold uppercase text-emerald-400">Pillar 3 Labor Governance</span>
           <h2 class="text-2xl font-black text-white">Shift Timeclock & Tip Declaration</h2>
-          <p class="text-xs text-slate-400 mt-1">Live clock-in/out & cash/CC tip declarations sync directly to REHG Labor Payroll</p>
+          <p class="text-xs text-slate-400 mt-1">CC tips claim automatically on check close; declare cash tips at clock-out</p>
         </div>
         <div id="active-shift-badge" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300">
           Status: Off Shift
@@ -284,17 +259,22 @@
         </div>
 
         <div class="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-3">
-          <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">💵 End-of-Shift Tip Declaration & Clock Out</h3>
+          <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">💵 End-of-Shift Cash Tips & Auto-Claimed CC Tips</h3>
           <div class="grid grid-cols-2 gap-2 text-xs">
-            <input id="declare-cash-tips" type="number" step="0.01" placeholder="Cash Tips ($)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-            <input id="declare-cc-tips" type="number" step="0.01" placeholder="CC Tips ($)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1 uppercase font-bold">Cash Tips</label>
+              <input id="declare-cash-tips" type="number" min="0" step="0.01" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-emerald-400 mb-1 uppercase font-bold">Auto-Claimed CC Tips</label>
+              <input id="declare-cc-tips" type="number" step="0.01" value="0.00" readonly class="w-full bg-slate-900/60 border border-emerald-500/40 rounded-lg px-3 py-2 text-emerald-300 font-black cursor-not-allowed" />
+            </div>
           </div>
-          <button id="clock-out-btn" onclick="clockOutStaff()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase transition">⏹ Declare Tips & Clock Out</button>
+          <button id="clock-out-btn" onclick="clockOutStaff()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase transition">⏹ Declare Cash Tips & Clock Out</button>
         </div>
       </div>
     </div>
 
-    <!-- RECENT SHIFTS & GOVERNANCE AUDIT TRAIL -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-white">📋 Recent Timeclock Shifts</h3>
@@ -307,36 +287,34 @@
     </div>
   </section>
 
-  <!-- ===================================================================== -->
-  <!-- VIEW 3: ON-THE-FLY MENU, COGS & 86 EDITOR (MANAGER / ADMIN / OWNER)   -->
-  <!-- ===================================================================== -->
+  <!-- VIEW 3: MENU EDITOR, INLINE PRICE/COGS & STAFF PROVISIONING -->
   <section id="view-loader" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
-    <!-- ADD ITEM + ADD STAFF FORMS -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- ADD MENU ITEM CARD -->
+      <!-- ADD MENU ITEM -->
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">➕ Add New Menu Item</h3>
         <div class="grid grid-cols-2 gap-2 text-xs">
           <input id="add-item-name" type="text" placeholder="Item Name (e.g. Casamigos Repo)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
           <select id="add-item-cat" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-            <option value="SPIRITS">SPIRITS</option>
+            <option value="SPIRITS">SPIRITS (Bar Modifiers)</option>
+            <option value="COCKTAILS">COCKTAILS (Bar Modifiers)</option>
+            <option value="BEER / WINE">BEER / WINE (Bar Modifiers)</option>
             <option value="VIP SERVICE">VIP SERVICE</option>
-            <option value="KITCHEN">KITCHEN</option>
-            <option value="BEER / WINE">BEER / WINE</option>
+            <option value="KITCHEN">KITCHEN (Routes to BOH KDS)</option>
           </select>
           <input id="add-item-priority" type="number" placeholder="Speed Order (1-99)" value="10" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-          <input id="add-item-price" type="number" step="0.01" placeholder="Retail Price ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-          <input id="add-item-cogs" type="number" step="0.01" placeholder="Owner COGS ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-price" type="number" step="0.01" placeholder="Retail Price" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-cogs" type="number" step="0.01" placeholder="Owner COGS" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
         </div>
         <button onclick="createMenuItem()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">Save Item to Terminal</button>
       </div>
 
-      <!-- ADD STAFF & PIN CARD -->
+      <!-- ADD STAFF & PIN -->
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
-        <h3 class="text-sm font-black uppercase tracking-wider text-amber-400">👥 Add Staff & 4-Digit PIN</h3>
+        <h3 class="text-sm font-black uppercase tracking-wider text-amber-400">👥 Add Employee & 4-Digit PIN</h3>
         <div class="grid grid-cols-2 gap-2 text-xs">
           <input id="add-staff-name" type="text" placeholder="Full Name (e.g. Jordan B.)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-          <input id="add-staff-title" type="text" placeholder="Title (e.g. Night Bartender)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-staff-title" type="text" placeholder="Title (e.g. Lead Bartender)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
           <select id="add-staff-tier" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
             <option value="Bartender">Bartender</option>
             <option value="Server">Server</option>
@@ -347,18 +325,18 @@
             <option value="General_Labor">Door / Host (Timeclock Only)</option>
           </select>
           <input id="add-staff-pin" type="text" maxlength="4" placeholder="4-Digit PIN (e.g. 5555)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold" />
-          <input id="add-staff-rate" type="number" step="0.01" placeholder="Hourly Wage ($)" value="15.00" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-staff-rate" type="number" step="0.01" placeholder="Hourly Wage" value="15.00" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
         </div>
-        <button onclick="createStaffMember()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase">Save Staff Profile & Activate PIN</button>
+        <button onclick="createStaffMember()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase">Save Employee & Activate PIN</button>
       </div>
     </div>
 
-    <!-- EXISTING LIVE 86 & DAILY SPECIAL BOARD -->
-    <div class="titanium-panel rounded-2xl p-6 space-y-5">
+    <!-- EDIT MENU ITEMS & 86 BOARD -->
+    <div class="titanium-panel rounded-2xl p-6 space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
-          <h2 class="text-xl font-black text-white">Live Menu, Owner's Skin COGS & 86'd Manager</h2>
-          <p class="text-xs text-slate-400">Changes broadcast immediately to all terminals & Carbon Feeder</p>
+          <h2 class="text-xl font-black text-white">✏️ Edit Menu Prices, COGS & 86 Status</h2>
+          <p class="text-xs text-slate-400">Adjust retail price, wholesale COGS, or toggle 86 stock status live</p>
         </div>
         <div class="flex items-center gap-2">
           <input id="new-special-input" type="text" placeholder="Update Daily Special banner..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white w-64" />
@@ -367,15 +345,23 @@
       </div>
       <div id="admin-menu-list" class="space-y-2"></div>
     </div>
+
+    <!-- ACTIVE EMPLOYEE ROSTER -->
+    <div class="titanium-panel rounded-2xl p-6 space-y-4">
+      <div class="border-b border-slate-800 pb-3">
+        <h2 class="text-lg font-black text-white">🪪 Active Employee Roster & Assigned PINs</h2>
+        <p class="text-xs text-slate-400">All provisioned staff profiles synced to Supabase</p>
+      </div>
+      <div id="admin-staff-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs"></div>
+    </div>
   </section>
-<!-- ===================================================================== -->
-  <!-- PILLAR 2: LIVE KDS (KITCHEN) & SERVICE BAR PREP QUEUE                 -->
-  <!-- ===================================================================== -->
+
+  <!-- VIEW 4: LIVE KDS & SERVICE BAR PREP QUEUE -->
   <section id="view-kds" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
       <div>
         <h2 class="text-xl font-black text-white">🔥 Live KDS & Service Bar Prep Queue</h2>
-        <p class="text-xs text-slate-400">Real-time BOH kitchen & service well routing with one-tap bump timers</p>
+        <p class="text-xs text-slate-400">Real-time BOH kitchen & service well routing with drink modifiers and bump timers</p>
       </div>
       <button onclick="loadPrepTickets()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Queue</button>
     </div>
@@ -398,42 +384,37 @@
       </div>
     </div>
   </section>
-  <!-- ===================================================================== -->
-  <!-- VIEW 4: REHG CARBON EXECUTION ENGINES (OWNER & ADMIN C-SUITE)         -->
-  <!-- ===================================================================== -->
+
+  <!-- VIEW 5: CARBON EXECUTION ENGINES & NIGHTLY Z-REPORT -->
   <section id="view-engines" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
       <div>
         <span class="text-xs font-bold uppercase text-amber-400">Pillar 4 Executive Telemetry</span>
         <h2 class="text-2xl font-black text-white">🏛️ Carbon Execution Engines & Live P&L</h2>
-        <p class="text-xs text-slate-400 mt-1">Real-time gross sales, Owner's Skin COGS guardrails (14% Bar / 22% Food), labor cost & nightly Z-Report</p>
+        <p class="text-xs text-slate-400 mt-1">Real-time gross sales, COGS guardrails (14% Bar / 22% Food), labor cost & nightly Z-Report</p>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="loadExecutionEngines()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Live Telemetry</button>
+        <button onclick="loadExecutionEngines()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Telemetry</button>
         <button onclick="runNightlyEodCloseout()" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase transition">🔒 Run Nightly EOD Z-Report</button>
       </div>
     </div>
 
-    <!-- 4 LIVE KPI GUARDRAIL CARDS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Closed Gross Sales</span>
         <div id="eng-gross-sales" class="text-2xl font-black text-white">$0.00</div>
         <div id="eng-checks-count" class="text-[11px] text-emerald-400 font-bold">0 closed checks • 0 open tabs</div>
       </div>
-
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Owner's Skin COGS & Pour %</span>
         <div id="eng-total-cogs" class="text-2xl font-black text-amber-400">$0.00</div>
         <div id="eng-cogs-guardrail" class="text-[11px] text-slate-300 font-bold">0.0% COGS (Target ≤ 18%)</div>
       </div>
-
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Live Shift Labor & Tips</span>
         <div id="eng-labor-cost" class="text-2xl font-black text-sky-400">$0.00</div>
-        <div id="eng-tips-total" class="text-[11px] text-slate-300 font-bold">Declared Tips: $0.00</div>
+        <div id="eng-tips-total" class="text-[11px] text-slate-300 font-bold">Claimed Tips: $0.00</div>
       </div>
-
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Net Contribution Margin</span>
         <div id="eng-net-margin" class="text-2xl font-black text-emerald-400">$0.00</div>
@@ -441,13 +422,11 @@
       </div>
     </div>
 
-    <!-- TOP SELLERS + CLOSED Z-REPORTS HISTORY -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-white">📊 Top-Performing Menu Items (Retail vs COGS)</h3>
         <div id="eng-top-items" class="space-y-2 text-xs"></div>
       </div>
-
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">🧾 Nightly EOD Z-Report Vault</h3>
         <div id="eng-eod-history" class="space-y-2 text-xs"></div>
@@ -455,17 +434,44 @@
     </div>
   </section>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL: MANAGER OVERRIDE (SWIPE / BIOMETRIC / MANAGER PIN + REASON)    -->
-  <!-- ===================================================================== -->
+  <!-- MODAL: POST-TAP DRINK MODIFIERS (MULTI-SELECT) -->
+  <div id="drink-mod-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="titanium-panel rounded-2xl max-w-md w-full p-5 space-y-4 border border-slate-700">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-[10px] font-bold uppercase text-amber-400">Select Drink Modifiers</span>
+          <h3 id="mod-modal-title" class="text-lg font-black text-white">Drink</h3>
+        </div>
+        <button onclick="closeDrinkModModal()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+      </div>
+      <div id="mod-active-tags" class="text-xs text-sky-400 font-bold min-h-[18px]">Standard Pour (Tap modifiers below to add)</div>
+      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+        <button onclick="applyDrinkMod('Neat', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🥃 Neat</button>
+        <button onclick="applyDrinkMod('On the Rocks', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🧊 On the Rocks</button>
+        <button onclick="applyDrinkMod('Chilled / Up', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🍸 Chilled / Up</button>
+        <button onclick="applyDrinkMod('No Ice / Light Ice', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">💧 Light / No Ice</button>
+        <button onclick="applyDrinkMod('Tall Glass', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🥛 Tall / Single</button>
+        <button onclick="applyDrinkMod('Lime & Salt', 0)" class="py-2.5 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300">🍋 Lime & Salt</button>
+        <button onclick="applyDrinkMod('Splash Cran / Pine', 1)" class="py-2.5 px-3 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-300">🍒 + Mixer (+$1)</button>
+        <button onclick="applyDrinkMod('+ Red Bull', 3)" class="py-2.5 px-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/50 text-sky-300">🐂 + Red Bull (+$3)</button>
+        <button onclick="applyDrinkMod('Double Pour', 4)" class="col-span-2 py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300">⚡ Make It a Double (+$4)</button>
+      </div>
+      <div class="flex gap-2">
+        <input id="mod-custom-note" type="text" placeholder="Custom prep note (e.g. Dirty, Extra Olive)..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+        <button onclick="addCustomDrinkMod()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white">+ Note</button>
+      </div>
+      <button onclick="closeDrinkModModal()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">✓ Done</button>
+    </div>
+  </div>
+
+  <!-- MODAL: MANAGER OVERRIDE -->
   <div id="override-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="titanium-panel rounded-2xl max-w-md w-full p-6 space-y-4 border border-amber-500/40">
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-black text-amber-400">🔒 Manager Override Required</h3>
         <button onclick="closeOverrideModal()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
       </div>
-      <p class="text-xs text-slate-300">Action: <strong id="override-action-label" class="text-white">--</strong>. Select mandatory reason code & authenticate via NFC Swipe, Biometric, or Manager PIN.</p>
-
+      <p class="text-xs text-slate-300">Action: <strong id="override-action-label" class="text-white">--</strong></p>
       <div>
         <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Mandatory Reason Code</label>
         <select id="override-reason-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
@@ -476,27 +482,27 @@
           <option value="Check Transfer">Approved Check Transfer</option>
         </select>
       </div>
-
+      <div id="override-transfer-wrap" class="hidden">
+        <label class="block text-[11px] font-bold text-sky-400 uppercase mb-1">Transfer Tab To (Staff Name)</label>
+        <input id="override-transfer-input" type="text" placeholder="e.g. Jordan B." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+      </div>
       <div>
-        <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Manager PIN or Swipe/Biometric</label>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Manager / Admin / Owner PIN</label>
         <div class="flex gap-2">
-          <input id="override-pin-input" type="password" maxlength="4" placeholder="Mgr PIN (e.g. 7777)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-bold" />
-          <button onclick="confirmManagerOverride(true)" class="px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold">🪪 Tap Swipe / Bio</button>
+          <input id="override-pin-input" type="password" maxlength="4" placeholder="PIN (7777 / 8888 / 9999)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-bold" />
+          <button onclick="confirmManagerOverride(true)" class="px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold">🪪 Bio</button>
         </div>
       </div>
-
       <button onclick="confirmManagerOverride(false)" class="w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase">Approve & Log Override</button>
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL: FORCED GUEST COUNT (MODEL A TABLE SERVICE)                     -->
-  <!-- ===================================================================== -->
+  <!-- MODAL: FORCED GUEST COUNT -->
   <div id="guest-count-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="titanium-panel rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-sky-500/40">
       <div class="text-xs font-bold uppercase text-sky-400">Model A Table Governance</div>
       <h3 class="text-xl font-black text-white">Guest Count for <span id="modal-table-name" class="text-amber-400">Table</span></h3>
-      <p class="text-xs text-slate-400">Mandatory headcount entry before loading table menu.</p>
+      <p class="text-xs text-slate-400">Mandatory headcount entry before ringing table items.</p>
       <div class="grid grid-cols-4 gap-2">
         <button onclick="confirmForcedGuestCount(1)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">1</button>
         <button onclick="confirmForcedGuestCount(2)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">2</button>
@@ -509,18 +515,20 @@
       </div>
     </div>
   </div>
-
   <script>
-    // =========================================================================
-    // SUPABASE CONNECTION (LIVE ANON PUBLIC KEY)
-    // =========================================================================
     const SUPABASE_URL = "https://ruvyxmpokjdzkagbltac.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1dnl4bXBva2pkemthZ2JsdGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NzMyNjQsImV4cCI6MjExMDQ0OTI2NH0.boILrcxFURxXBL6zvWgTaMZHFkO8QmfUMq2X1B1XugQ";
     const VENUE_ID = "11111111-1111-1111-1111-111111111111";
+    const OVERRIDE_TIERS = ["Manager", "Admin", "Owner"];
+    const USD = "\x24";
+
+    function fmt(val) {
+      return USD + Number(val || 0).toFixed(2);
+    }
 
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // GLOBAL STATE
+    // UNIFIED GLOBAL STATE
     let staffList = [];
     let menuItems = [];
     let currentUser = null;
@@ -530,27 +538,37 @@
     let guestCountStated = 1;
     let isOwnerSkinActive = false;
     let pendingOverrideAction = null;
+    let pendingModIdx = null;
+    let openTabsList = [];
+    let activeOpenTabId = null;
+    let prepTicketsList = [];
+    let activeShiftRecord = null;
+    let latestEngineSnapshot = null;
 
-    // BOOTSTRAP
     async function initCarbonOS() {
       const badge = document.getElementById("db-status-badge");
       try {
-        const [{ data: venue }, { data: staff }, { data: menu }] = await Promise.all([
+        const [venueRes, staffRes, menuRes] = await Promise.all([
           db.from("venues").select("*").eq("id", VENUE_ID).single(),
           db.from("staff_users").select("*").eq("venue_id", VENUE_ID),
           db.from("menu_items").select("*").eq("venue_id", VENUE_ID).order("speed_screen_priority", { ascending: true })
         ]);
 
-        if (venue) {
-          document.getElementById("daily-special-banner").textContent = venue.daily_special_text || "Welcome to REHG Carbon";
-          document.getElementById("new-special-input").value = venue.daily_special_text || "";
+        if (venueRes.data) {
+          document.getElementById("daily-special-banner").textContent = venueRes.data.daily_special_text || "Welcome to REHG Carbon";
+          document.getElementById("new-special-input").value = venueRes.data.daily_special_text || "";
         }
-        staffList = staff || [];
-        menuItems = menu || [];
+        staffList = staffRes.data || [];
+        menuItems = menuRes.data || [];
 
         badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/40 text-emerald-400";
         badge.textContent = "🟢 LIVE SUPABASE SYNC";
         update86Ticker();
+        renderMenuGrid();
+        renderAdminMenuList();
+        renderAdminStaffList();
+        loadOpenTabs();
+        loadPrepTickets();
       } catch (err) {
         badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 border border-rose-500/40 text-rose-400";
         badge.textContent = "⚠️ DB SYNC ERROR";
@@ -558,15 +576,13 @@
       }
     }
 
-    // =========================================================================
-    // 7-TIER AUTHENTICATION LOGIC
-    // =========================================================================
+    // 7-TIER AUTHENTICATION
     function pressPin(digit) {
       if (enteredPin.length >= 4) return;
       enteredPin += digit;
       updatePinDots();
       if (enteredPin.length === 4) {
-        setTimeout(() => verifyPin(enteredPin), 150);
+        setTimeout(function() { verifyPin(enteredPin); }, 150);
       }
     }
 
@@ -578,7 +594,7 @@
 
     function updatePinDots() {
       for (let i = 1; i <= 4; i++) {
-        const dot = document.getElementById(`dot-${i}`);
+        const dot = document.getElementById("dot-" + i);
         if (i <= enteredPin.length) {
           dot.classList.add("bg-emerald-400", "border-emerald-400");
           dot.classList.remove("bg-slate-900", "border-slate-600");
@@ -590,7 +606,7 @@
     }
 
     function verifyPin(pin) {
-      const matched = staffList.find(s => s.pin_code === pin);
+      const matched = staffList.find(function(s) { return s.pin_code === pin; });
       if (!matched) {
         document.getElementById("pin-error").classList.remove("hidden");
         enteredPin = "";
@@ -601,53 +617,53 @@
     }
 
     function simulateBiometricLogin() {
-      const ownerOrMgr = staffList.find(s => s.biometric_enabled) || staffList[0];
+      const ownerOrMgr = staffList.find(function(s) { return s.biometric_enabled; }) || staffList[0];
       if (ownerOrMgr) loginStaff(ownerOrMgr);
     }
 
-    function loginStaff(user) {
+    async function loginStaff(user) {
       currentUser = user;
       enteredPin = "";
       updatePinDots();
 
       document.getElementById("view-lockscreen").classList.add("hidden");
-      document.getElementById("main-nav").classList.remove("hidden");
-      document.getElementById("main-nav").classList.add("flex");
-      document.getElementById("active-staff-pill").classList.remove("hidden");
-      document.getElementById("active-staff-pill").classList.add("flex");
+      const nav = document.getElementById("main-nav");
+      nav.classList.remove("hidden");
+      nav.classList.add("flex");
+      const pill = document.getElementById("active-staff-pill");
+      pill.classList.remove("hidden");
+      pill.classList.add("flex");
       document.getElementById("page-mod-btn").classList.remove("hidden");
 
+      const tier = user.role_tier || user.role || "Staff";
       document.getElementById("staff-name-display").textContent = user.full_name;
-      document.getElementById("staff-role-display").textContent = `${user.role_tier} • ${user.custom_title || ''}`;
-      document.getElementById("tc-staff-name").textContent = `${user.full_name} (${user.role_tier})`;
+      document.getElementById("staff-role-display").textContent = tier + (user.custom_title ? " • " + user.custom_title : "");
 
-      const tier = user.role_tier;
+      ["tab-terminal", "tab-kds", "tab-loader", "tab-engines", "mode-ownerskin"].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("hidden");
+      });
+
       const badge = document.getElementById("ui-mode-badge");
+      await loadTimeclockAndAudits();
 
-      // Reset role tab visibility
-      ["tab-terminal", "tab-loader", "tab-engines", "mode-ownerskin"].forEach(id => document.getElementById(id).classList.add("hidden"));
-
-      // Enforce 7-Tier UI Lockout Rules
       if (tier === "Barback" || tier === "General_Labor") {
-        // Locked strictly to Punch In / Punch Out
         badge.textContent = "TIMECLOCK ONLY MODE";
         switchTab("timeclock");
         return;
       }
 
-      // Server and above get Terminal access
       document.getElementById("tab-terminal").classList.remove("hidden");
-      if (tier === "Manager" || tier === "Admin" || tier === "Owner") {
+      document.getElementById("tab-kds").classList.remove("hidden");
+
+      if (OVERRIDE_TIERS.includes(tier)) {
         document.getElementById("tab-loader").classList.remove("hidden");
-      }
-      if (tier === "Admin" || tier === "Owner") {
         document.getElementById("tab-engines").classList.remove("hidden");
       }
       if (tier === "Owner") {
         document.getElementById("mode-ownerskin").classList.remove("hidden");
       }
 
-      // Set default workspace by role
       if (tier === "Server") {
         setServiceMode("TABLE_SERVICE");
         badge.textContent = "TABLE SERVICE UI";
@@ -658,39 +674,52 @@
 
       renderMenuGrid();
       renderAdminMenuList();
+      renderAdminStaffList();
+      renderTicket();
       switchTab("terminal");
     }
 
     function lockTerminal() {
       currentUser = null;
       isOwnerSkinActive = false;
+      activeOpenTabId = null;
       ticket = [];
       renderTicket();
       document.getElementById("main-nav").classList.add("hidden");
       document.getElementById("active-staff-pill").classList.add("hidden");
       document.getElementById("page-mod-btn").classList.add("hidden");
-      ["view-terminal", "view-timeclock", "view-loader", "view-engines"].forEach(id => document.getElementById(id).classList.add("hidden"));
+      ["terminal", "timeclock", "kds", "loader", "engines"].forEach(function(v) {
+        const sec = document.getElementById("view-" + v);
+        if (sec) sec.classList.add("hidden");
+      });
       document.getElementById("view-lockscreen").classList.remove("hidden");
       document.getElementById("ui-mode-badge").textContent = "LOCKED TERMINAL";
     }
 
-    function switchTab(tab) {
-      ["terminal", "timeclock", "loader", "engines"].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add("hidden");
+    function switchTab(tabName) {
+      ["terminal", "timeclock", "kds", "loader", "engines"].forEach(function(v) {
+        const sec = document.getElementById("view-" + v);
+        if (sec) sec.classList.toggle("hidden", v !== tabName);
+        const btn = document.getElementById("tab-" + v);
+        if (btn) {
+          btn.classList.toggle("bg-sky-500", v === tabName);
+          btn.classList.toggle("text-slate-950", v === tabName);
+          btn.classList.toggle("bg-slate-900", v !== tabName);
+          btn.classList.toggle("text-slate-300", v !== tabName);
+        }
       });
-      document.getElementById(`view-${tab}`).classList.remove("hidden");
-      if (tab === "engines") loadExecutionEngines();
+      if (tabName === "kds") loadPrepTickets();
+      if (tabName === "timeclock") loadTimeclockAndAudits();
+      if (tabName === "loader") { renderAdminMenuList(); renderAdminStaffList(); }
+      if (tabName === "engines") loadExecutionEngines();
     }
 
-    // =========================================================================
-    // SERVICE MODE, FORCED GUEST COUNT & OWNER'S SKIN
-    // =========================================================================
+    // SERVICE MODE, GUEST COUNT & OWNER'S SKIN
     function setServiceMode(mode) {
       serviceMode = mode;
       const floorStrip = document.getElementById("floor-plan-strip");
       const btnFast = document.getElementById("mode-fastbar");
       const btnTable = document.getElementById("mode-tables");
-
       if (mode === "TABLE_SERVICE") {
         floorStrip.classList.remove("hidden");
         btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 text-slate-950";
@@ -704,6 +733,7 @@
 
     function selectTable(tableName) {
       document.getElementById("ticket-tab-name").value = tableName;
+      document.getElementById("active-tab-name").value = tableName;
       document.getElementById("modal-table-name").textContent = tableName;
       document.getElementById("guest-count-modal").classList.remove("hidden");
     }
@@ -717,7 +747,7 @@
       guestCountStated = count;
       document.getElementById("ticket-gc-stated").textContent = count;
       document.getElementById("custom-guest-input").value = count;
-      document.querySelectorAll(".gc-pill").forEach(btn => {
+      document.querySelectorAll(".gc-pill").forEach(function(btn) {
         const val = parseInt(btn.dataset.gc);
         btn.className = val === count
           ? "gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950"
@@ -726,14 +756,14 @@
     }
 
     function toggleOwnerSkin() {
-      if (!currentUser || currentUser.role_tier !== "Owner") return;
+      if (!currentUser || (currentUser.role_tier || currentUser.role) !== "Owner") return;
       isOwnerSkinActive = !isOwnerSkinActive;
       const banner = document.getElementById("owner-skin-banner");
       const btn = document.getElementById("mode-ownerskin");
       if (isOwnerSkinActive) {
         banner.classList.remove("hidden");
         btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20";
-        document.getElementById("ticket-tab-name").value = `OWNER SKIN: ${currentUser.full_name}`;
+        document.getElementById("ticket-tab-name").value = "OWNER SKIN: " + currentUser.full_name;
       } else {
         banner.classList.add("hidden");
         btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50";
@@ -743,36 +773,39 @@
       renderTicket();
     }
 
-    // =========================================================================
-    // MENU RENDERING, SPEED RINGING & MODEL B PACKAGING ENGINE
-    // =========================================================================
+    // MENU GRID, POST-TAP DRINK MODS & ACTIVE TICKET
     function renderMenuGrid() {
       const grid = document.getElementById("menu-grid");
+      if (!grid) return;
       grid.innerHTML = "";
+      if (!menuItems.length) {
+        grid.innerHTML = '<div class="col-span-3 text-xs text-slate-400 py-6 text-center">No menu items loaded yet. Add items in Menu & Staff.</div>';
+        return;
+      }
 
-      menuItems.forEach(item => {
+      menuItems.forEach(function(item) {
         const activePrice = isOwnerSkinActive ? Number(item.wholesale_cogs || 0) : Number(item.price || 0);
-        const disabled = item.is_86d;
+        const disabled = Boolean(item.is_86d);
         const card = document.createElement("button");
         card.disabled = disabled;
-        card.onclick = () => addItemToTicket(item);
+        card.onclick = function() { addItemToTicket(item); };
         card.className = disabled
           ? "p-4 rounded-xl bg-slate-950 border border-rose-900/50 opacity-50 text-left cursor-not-allowed"
           : "p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-400 text-left transition flex flex-col justify-between";
 
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-start gap-1">
-              <span class="text-[10px] font-bold uppercase text-slate-400">${item.category || 'Bar'}</span>
-              ${disabled ? '<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[10px] font-black">86\'D</span>' : ''}
-            </div>
-            <div class="text-sm font-black text-white mt-1">${item.name}</div>
-          </div>
-          <div class="mt-3 flex items-baseline justify-between">
-            <span class="text-base font-black ${isOwnerSkinActive ? 'text-amber-400' : 'text-emerald-400'}">$${activePrice.toFixed(2)}</span>
-            ${isOwnerSkinActive ? '<span class="text-[10px] text-amber-300 font-bold">AT COST</span>' : ''}
-          </div>
-        `;
+        const priceClass = isOwnerSkinActive ? "text-amber-300" : "text-emerald-400";
+        card.innerHTML =
+          '<div>' +
+            '<div class="flex justify-between items-start gap-1">' +
+              '<span class="text-[10px] font-bold uppercase text-slate-400">' + (item.category || "BAR") + '</span>' +
+              (disabled ? '<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[10px] font-black">86D</span>' : '') +
+            '</div>' +
+            '<div class="text-sm font-black text-white mt-1">' + item.name + '</div>' +
+          '</div>' +
+          '<div class="mt-3 flex items-baseline justify-between">' +
+            '<span class="text-base font-black ' + priceClass + '">' + fmt(activePrice) + '</span>' +
+            (isOwnerSkinActive ? '<span class="text-[10px] text-amber-300 font-bold">AT COST</span>' : '') +
+          '</div>';
         grid.appendChild(card);
       });
     }
@@ -782,27 +815,57 @@
       ticket.push({
         id: item.id,
         name: item.name,
+        category: item.category || "SPIRITS",
         price: unitPrice,
         cogs: Number(item.wholesale_cogs || 0),
+        qty: 1,
         mods: [],
         packaging: Array.isArray(item.packaging_recipe) ? item.packaging_recipe : []
       });
       renderTicket();
+
+      if ((item.category || "").toUpperCase() !== "KITCHEN") {
+        pendingModIdx = ticket.length - 1;
+        document.getElementById("mod-modal-title").textContent = item.name;
+        document.getElementById("mod-active-tags").textContent = "Standard Pour (Tap modifiers below to add)";
+        document.getElementById("mod-custom-note").value = "";
+        document.getElementById("drink-mod-modal").classList.remove("hidden");
+      }
     }
 
-    function appendMod(modText) {
-      if (ticket.length === 0) return;
-      ticket[ticket.length - 1].mods.push(modText);
+    function applyDrinkMod(modLabel, upcharge) {
+      if (pendingModIdx === null || !ticket[pendingModIdx]) return;
+      const line = ticket[pendingModIdx];
+      if (!line.mods.includes(modLabel)) {
+        line.mods.push(modLabel);
+        if (!isOwnerSkinActive && upcharge > 0) {
+          line.price = Number(line.price || 0) + Number(upcharge);
+        }
+      }
+      document.getElementById("mod-active-tags").textContent = "Selected: " + line.mods.join(", ");
       renderTicket();
+    }
+
+    function addCustomDrinkMod() {
+      const val = document.getElementById("mod-custom-note").value.trim();
+      if (!val) return;
+      applyDrinkMod(val, 0);
+      document.getElementById("mod-custom-note").value = "";
+    }
+
+    function closeDrinkModModal() {
+      pendingModIdx = null;
+      document.getElementById("drink-mod-modal").classList.add("hidden");
     }
 
     function renderTicket() {
       const container = document.getElementById("ticket-items");
+      if (!container) return;
       if (ticket.length === 0) {
-        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>`;
-        document.getElementById("ticket-subtotal").textContent = "$0.00";
-        document.getElementById("ticket-tax").textContent = "$0.00";
-        document.getElementById("ticket-total").textContent = "$0.00";
+        container.innerHTML = '<div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>';
+        document.getElementById("ticket-subtotal").textContent = fmt(0);
+        document.getElementById("ticket-tax").textContent = fmt(0);
+        document.getElementById("ticket-total").textContent = fmt(0);
         document.getElementById("model-b-preview").textContent = "No consumables queued yet.";
         document.getElementById("ticket-gc-calc").textContent = "0";
         return;
@@ -812,45 +875,40 @@
       const packagingTotals = {};
       container.innerHTML = "";
 
-      ticket.forEach((line, idx) => {
-        const activePrice = isOwnerSkinActive ? line.cogs : line.price;
-        subtotal += activePrice;
+      ticket.forEach(function(line, idx) {
+        const qty = Number(line.qty || 1);
+        const unit = isOwnerSkinActive ? Number(line.cogs || 0) : Number(line.price || 0);
+        const lineTotal = unit * qty;
+        subtotal += lineTotal;
 
-        // Aggregate Model B Packaging & Dry Goods
-        line.packaging.forEach(pkg => {
-          packagingTotals[pkg.item] = (packagingTotals[pkg.item] || 0) + Number(pkg.qty || 1);
+        (line.packaging || []).forEach(function(pkg) {
+          packagingTotals[pkg.item] = (packagingTotals[pkg.item] || 0) + Number(pkg.qty || 1) * qty;
         });
 
         const row = document.createElement("div");
         row.className = "flex items-center justify-between bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg text-xs";
-        row.innerHTML = `
-          <div>
-            <div class="font-bold text-white">${line.name}</div>
-            ${line.mods.length ? `<div class="text-[10px] text-sky-400">+ ${line.mods.join(', ')}</div>` : ''}
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="font-bold ${isOwnerSkinActive ? 'text-amber-400' : 'text-emerald-400'}">$${activePrice.toFixed(2)}</span>
-            <button onclick="removeTicketItem(${idx})" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>
-          </div>
-        `;
+        row.innerHTML =
+          '<div>' +
+            '<div class="font-bold text-white">' + (qty > 1 ? qty + "x " : "") + line.name + '</div>' +
+            (line.mods && line.mods.length ? '<div class="text-[10px] text-sky-400">+ ' + line.mods.join(", ") + '</div>' : '') +
+          '</div>' +
+          '<div class="flex items-center gap-3">' +
+            '<span class="font-bold text-emerald-400">' + fmt(lineTotal) + '</span>' +
+            '<button onclick="removeTicketItem(' + idx + ')" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>' +
+          '</div>';
         container.appendChild(row);
       });
 
       const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
       const total = subtotal + tax;
 
-      document.getElementById("ticket-subtotal").textContent = `$${subtotal.toFixed(2)}`;
-      document.getElementById("ticket-tax").textContent = `$${tax.toFixed(2)}`;
-      document.getElementById("ticket-total").textContent = `$${total.toFixed(2)}`;
+      document.getElementById("ticket-subtotal").textContent = fmt(subtotal);
+      document.getElementById("ticket-tax").textContent = fmt(tax);
+      document.getElementById("ticket-total").textContent = fmt(total);
+      document.getElementById("ticket-gc-calc").textContent = Math.max(1, ticket.length);
 
-      // Model B Calculated Guest Count (based on primary vessels/cups consumed)
-      const calcGuests = Math.max(1, ticket.length);
-      document.getElementById("ticket-gc-calc").textContent = calcGuests;
-
-      const pkgEntries = Object.entries(packagingTotals).map(([k, v]) => `${v}x ${k}`);
-      document.getElementById("model-b-preview").textContent = pkgEntries.length
-        ? pkgEntries.join(" • ")
-        : "Standard glassware service";
+      const pkgEntries = Object.entries(packagingTotals).map(function(kv) { return kv[1] + "x " + kv[0]; });
+      document.getElementById("model-b-preview").textContent = pkgEntries.length ? pkgEntries.join(" • ") : "Standard glassware service";
     }
 
     function removeTicketItem(idx) {
@@ -858,13 +916,247 @@
       renderTicket();
     }
 
-    // =========================================================================
-    // MANAGER OVERRIDES & CLOSE CHECK TO SUPABASE
-    // =========================================================================
+    // PILLAR 2: OPEN TABS & KDS / SERVICE BAR ROUTING
+    async function loadOpenTabs() {
+      const { data } = await db.from("orders").select("*").eq("venue_id", VENUE_ID).eq("status", "OPEN");
+      openTabsList = data || [];
+      renderOpenTabsStrip();
+    }
+
+    function renderOpenTabsStrip() {
+      const strip = document.getElementById("open-tabs-strip");
+      if (!strip) return;
+      if (!openTabsList.length) {
+        strip.innerHTML = '<span class="text-[11px] text-slate-500">No open bar/VIP tabs</span>';
+        return;
+      }
+      strip.innerHTML = openTabsList.map(function(t) {
+        const active = t.id === activeOpenTabId;
+        const amt = Number(t.total_retail || t.total_amount || t.subtotal || 0);
+        const cls = active
+          ? "bg-amber-500 text-slate-950 border-amber-400"
+          : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800";
+        return '<button onclick="recallOpenTab(\'' + t.id + '\')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ' + cls + '">📌 ' + (t.tab_name || "Tab") + " (" + fmt(amt) + ")</button>";
+      }).join("");
+    }
+
+    async function routeItemsToPrep(orderId, tabName, items) {
+      if (!items || !items.length) return;
+      const formatted = items.map(function(i) {
+        const modStr = i.mods && i.mods.length ? " [" + i.mods.join(", ") + "]" : "";
+        return { name: i.name + modStr, qty: i.qty || 1, category: i.category || "SPIRITS" };
+      });
+      const kitchenItems = formatted.filter(function(i) { return (i.category || "").toUpperCase() === "KITCHEN"; });
+      const barItems = formatted.filter(function(i) { return (i.category || "").toUpperCase() !== "KITCHEN"; });
+      const serverName = currentUser ? currentUser.full_name : "Terminal";
+
+      const rows = [];
+      if (kitchenItems.length) rows.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "KITCHEN", items: kitchenItems, server_name: serverName });
+      if (barItems.length) rows.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "SERVICE_BAR", items: barItems, server_name: serverName });
+      if (rows.length) {
+        await db.from("prep_tickets").insert(rows);
+        await loadPrepTickets();
+      }
+    }
+
+    async function holdOpenTab() {
+      if (!ticket.length) return alert("Add items to the ticket before holding a tab.");
+      const tabInput = document.getElementById("active-tab-name");
+      const tabName = tabInput.value.trim() || document.getElementById("ticket-tab-name").value.trim() || ("Bar Tab #" + (openTabsList.length + 1));
+      const subtotal = ticket.reduce(function(s, i) { return s + Number(i.price || 0) * Number(i.qty || 1); }, 0);
+      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
+      const tax = subtotal * 0.08;
+
+      let orderId = activeOpenTabId;
+      if (activeOpenTabId) {
+        await db.from("orders").update({
+          tab_name: tabName,
+          items: ticket,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: subtotal + tax,
+          total_retail: subtotal,
+          total_cogs: totalCogs
+        }).eq("id", activeOpenTabId);
+      } else {
+        const { data, error } = await db.from("orders").insert({
+          venue_id: VENUE_ID,
+          staff_id: currentUser ? currentUser.id : null,
+          tab_name: tabName,
+          service_mode: serviceMode,
+          order_type: "OPEN_TAB",
+          guest_count_stated: guestCountStated,
+          guest_count_calculated: Math.max(1, ticket.length),
+          status: "OPEN",
+          items: ticket,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: subtotal + tax,
+          total_retail: subtotal,
+          total_cogs: totalCogs
+        }).select().single();
+        if (error) return alert("Error holding tab: " + error.message);
+        orderId = data.id;
+      }
+
+      await routeItemsToPrep(orderId, tabName, ticket);
+      ticket = [];
+      activeOpenTabId = null;
+      tabInput.value = "";
+      document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      renderTicket();
+      await loadOpenTabs();
+      alert("📌 Tab '" + tabName + "' held & routed to KDS / Service Bar!");
+    }
+
+    function recallOpenTab(tabId) {
+      const tab = openTabsList.find(function(t) { return t.id === tabId; });
+      if (!tab) return;
+      activeOpenTabId = tab.id;
+      ticket = Array.isArray(tab.items) ? JSON.parse(JSON.stringify(tab.items)) : [];
+      document.getElementById("active-tab-name").value = tab.tab_name || "";
+      document.getElementById("ticket-tab-name").value = tab.tab_name || "Open Tab";
+      renderTicket();
+      renderOpenTabsStrip();
+    }
+
+    async function loadPrepTickets() {
+      const { data } = await db.from("prep_tickets").select("*").eq("venue_id", VENUE_ID).eq("status", "PENDING");
+      prepTicketsList = (data || []).sort(function(a, b) {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      });
+      renderPrepQueues();
+    }
+
+    function renderPrepQueues() {
+      const kitchen = prepTicketsList.filter(function(t) { return t.station === "KITCHEN"; });
+      const bar = prepTicketsList.filter(function(t) { return t.station !== "KITCHEN"; });
+
+      const badge = document.getElementById("kds-badge");
+      if (badge) {
+        badge.textContent = prepTicketsList.length;
+        badge.classList.toggle("hidden", prepTicketsList.length === 0);
+      }
+      document.getElementById("kds-kitchen-count").textContent = kitchen.length + " active";
+      document.getElementById("kds-bar-count").textContent = bar.length + " active";
+
+      function buildCard(t, accent) {
+        const mins = t.created_at ? Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 60000)) : 0;
+        const lines = (t.items || []).map(function(i) {
+          return '<div class="text-xs text-white"><strong class="' + accent + '">' + (i.qty || 1) + 'x</strong> ' + i.name + '</div>';
+        }).join("");
+        return '<div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">' +
+          '<div class="flex items-center justify-between">' +
+            '<div><span class="text-xs font-black text-white">' + (t.tab_name || "Order") + '</span>' +
+            '<span class="ml-2 text-[10px] text-slate-400">by ' + (t.server_name || "Staff") + " • " + mins + 'm ago</span></div>' +
+            '<button onclick="bumpPrepTicket(\'' + t.id + '\')" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] uppercase">✓ Bump</button>' +
+          '</div>' +
+          '<div class="space-y-1 border-t border-slate-800 pt-2">' + lines + '</div>' +
+        '</div>';
+      }
+
+      document.getElementById("kds-kitchen-list").innerHTML = kitchen.length ? kitchen.map(function(t) { return buildCard(t, "text-amber-400"); }).join("") : '<p class="text-xs text-slate-500">No active kitchen tickets.</p>';
+      document.getElementById("kds-bar-list").innerHTML = bar.length ? bar.map(function(t) { return buildCard(t, "text-emerald-400"); }).join("") : '<p class="text-xs text-slate-500">No active service bar tickets.</p>';
+    }
+
+    async function bumpPrepTicket(ticketId) {
+      await db.from("prep_tickets").update({ status: "BUMPED", bumped_at: new Date().toISOString() }).eq("id", ticketId);
+      await loadPrepTickets();
+    }
+    // CHECK CLOSE + AUTO-CLAIMED CC TIPS
+    async function closeAndPushCheck() {
+      if (ticket.length === 0) return alert("Ring at least one item before closing check.");
+
+      const tabName = document.getElementById("active-tab-name").value.trim() || document.getElementById("ticket-tab-name").value.trim() || "Bar Walk-In";
+      const subtotal = ticket.reduce(function(s, i) { return s + (isOwnerSkinActive ? Number(i.cogs || 0) : Number(i.price || 0)) * Number(i.qty || 1); }, 0);
+      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
+      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
+      const total = subtotal + tax;
+      const ccTipVal = Math.max(0, parseFloat(document.getElementById("ticket-cc-tip").value || "0"));
+      const itemsSnapshot = JSON.parse(JSON.stringify(ticket));
+
+      let orderId = activeOpenTabId;
+      if (activeOpenTabId) {
+        const { error } = await db.from("orders").update({
+          tab_name: tabName,
+          status: "CLOSED",
+          items: itemsSnapshot,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: total,
+          total_retail: subtotal,
+          total_cogs: totalCogs
+        }).eq("id", activeOpenTabId);
+        if (error) return alert("Error closing tab: " + error.message);
+      } else {
+        const { data, error } = await db.from("orders").insert({
+          venue_id: VENUE_ID,
+          staff_id: currentUser ? currentUser.id : null,
+          tab_name: tabName,
+          service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
+          order_type: "BAR_QUICK",
+          guest_count_stated: guestCountStated,
+          guest_count_calculated: Math.max(1, ticket.length),
+          is_owner_skin: isOwnerSkinActive,
+          items: itemsSnapshot,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: total,
+          total_retail: subtotal,
+          total_cogs: totalCogs,
+          status: "CLOSED"
+        }).select().single();
+        if (error) return alert("Error pushing check: " + error.message);
+        orderId = data.id;
+        await routeItemsToPrep(orderId, tabName, itemsSnapshot);
+      }
+
+      // AUTO-CLAIM CC TIP DIRECTLY TO STAFF SHIFT
+      if (ccTipVal > 0 && currentUser) {
+        if (!activeShiftRecord) {
+          const { data: newShift } = await db.from("timeclock_shifts").insert({
+            venue_id: VENUE_ID,
+            staff_id: currentUser.id,
+            staff_name: currentUser.full_name,
+            role_tier: currentUser.role_tier || currentUser.role || "Staff",
+            hourly_rate: Number(currentUser.hourly_rate || 0),
+            cc_tips: ccTipVal,
+            status: "ACTIVE"
+          }).select().single();
+          activeShiftRecord = newShift || null;
+        } else {
+          const updatedCc = Number(activeShiftRecord.cc_tips || 0) + ccTipVal;
+          await db.from("timeclock_shifts").update({ cc_tips: updatedCc }).eq("id", activeShiftRecord.id);
+          activeShiftRecord.cc_tips = updatedCc;
+        }
+        updateShiftBadge();
+      }
+
+      if (isOwnerSkinActive && currentUser) {
+        await db.from("governance_audits").insert({
+          venue_id: VENUE_ID,
+          audit_type: "OWNER_SKIN_CONSUMPTION",
+          severity: "INFO",
+          summary: "Owner Skin Ticket (" + fmt(total) + " at COGS) logged by " + currentUser.full_name
+        });
+      }
+
+      ticket = [];
+      activeOpenTabId = null;
+      document.getElementById("ticket-cc-tip").value = "";
+      document.getElementById("active-tab-name").value = "";
+      document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      renderTicket();
+      await loadOpenTabs();
+      alert("✅ Check Closed (" + fmt(total) + ")" + (ccTipVal > 0 ? " + " + fmt(ccTipVal) + " CC Tip Auto-Claimed!" : "!"));
+    }
+
+    // PILLAR 3: MANAGER OVERRIDES & TIMECLOCK
     function requestManagerOverride(action) {
       pendingOverrideAction = action;
       document.getElementById("override-action-label").textContent = action;
       document.getElementById("override-pin-input").value = "";
+      document.getElementById("override-transfer-wrap").classList.toggle("hidden", action !== "TRANSFER_CHECK");
       document.getElementById("override-modal").classList.remove("hidden");
     }
 
@@ -873,124 +1165,207 @@
       pendingOverrideAction = null;
     }
 
-    async function confirmManagerOverride(isBiometricSwipe) {
+    async function confirmManagerOverride(isBio) {
       const reason = document.getElementById("override-reason-select").value;
-      const pinVal = document.getElementById("override-pin-input").value;
+      const pinVal = document.getElementById("override-pin-input").value.trim();
+      const approver = isBio
+        ? staffList.find(function(s) { return OVERRIDE_TIERS.includes(s.role_tier || s.role); })
+        : staffList.find(function(s) { return s.pin_code === pinVal && OVERRIDE_TIERS.includes(s.role_tier || s.role); });
 
-      let approver = null;
-      if (isBiometricSwipe) {
-        approver = staffList.find(s => ["Owner", "Admin", "Manager"].includes(s.role_tier));
-      } else {
-        approver = staffList.find(s => s.pin_code === pinVal && ["Owner", "Admin", "Manager"].includes(s.role_tier));
-      }
+      if (!approver) return alert("❌ Invalid Manager / Admin / Owner PIN.");
 
-      if (!approver) {
-        alert("Invalid Manager/Admin/Owner credentials.");
-        return;
-      }
-
+      const affectedAmt = ticket.reduce(function(s, i) { return s + Number(i.price || 0) * Number(i.qty || 1); }, 0);
       await db.from("governance_audits").insert({
         venue_id: VENUE_ID,
         audit_type: pendingOverrideAction,
         severity: "WARNING",
-        summary: `${pendingOverrideAction} approved by ${approver.full_name} (${isBiometricSwipe ? 'NFC/Biometric' : 'PIN'}) — Reason: ${reason}`
+        summary: pendingOverrideAction + " (" + fmt(affectedAmt) + ") by " + (currentUser ? currentUser.full_name : "Staff") + " • Approved by " + approver.full_name + " — " + reason
       });
 
       if (pendingOverrideAction === "VOID_TICKET") {
+        if (activeOpenTabId) {
+          await db.from("orders").update({ status: "VOIDED" }).eq("id", activeOpenTabId);
+          activeOpenTabId = null;
+          await loadOpenTabs();
+        }
         ticket = [];
         renderTicket();
+      } else if (pendingOverrideAction === "COMP_ITEM" && ticket.length) {
+        ticket = ticket.map(function(i) { return Object.assign({}, i, { price: 0 }); });
+        renderTicket();
+      } else if (pendingOverrideAction === "TRANSFER_CHECK") {
+        const targetStaff = document.getElementById("override-transfer-input").value.trim() || "Transferred";
+        const baseName = document.getElementById("ticket-tab-name").value || "Tab";
+        document.getElementById("ticket-tab-name").value = baseName + " (" + targetStaff + ")";
+        document.getElementById("active-tab-name").value = baseName + " (" + targetStaff + ")";
       }
-      alert(`✅ Override logged under ${approver.full_name}: ${reason}`);
+
       closeOverrideModal();
+      await loadTimeclockAndAudits();
+      alert("🛡️ " + "Override approved & logged under " + approver.full_name);
     }
 
-    async function closeAndPushCheck() {
-      if (ticket.length === 0) return;
+    async function loadTimeclockAndAudits() {
+      if (!currentUser) return;
+      const { data: activeRows } = await db.from("timeclock_shifts")
+        .select("*").eq("venue_id", VENUE_ID).eq("staff_id", currentUser.id).eq("status", "ACTIVE").limit(1);
+      activeShiftRecord = (activeRows && activeRows.length) ? activeRows[0] : null;
+      updateShiftBadge();
 
-      const subtotal = ticket.reduce((acc, item) => acc + (isOwnerSkinActive ? item.cogs : item.price), 0);
-      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
-      const total = subtotal + tax;
-      const calcGuests = Math.max(1, ticket.length);
+      const { data: recentShifts } = await db.from("timeclock_shifts")
+        .select("*").eq("venue_id", VENUE_ID).order("clock_in", { ascending: false }).limit(8);
 
-      const { data: orderData, error } = await db.from("orders").insert({
+      const shiftBox = document.getElementById("recent-shifts-list");
+      if (shiftBox) {
+        shiftBox.innerHTML = (recentShifts && recentShifts.length)
+          ? recentShifts.map(function(s) {
+              const inT = new Date(s.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              const outT = s.clock_out ? new Date(s.clock_out).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "ON SHIFT";
+              const totalTips = Number(s.cash_tips || 0) + Number(s.cc_tips || 0);
+              return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">' +
+                '<div><span class="font-bold text-white">' + s.staff_name + '</span> <span class="text-slate-400">(' + s.role_tier + ')</span>' +
+                '<div class="text-[11px] text-slate-400">' + inT + " → " + outT + '</div></div>' +
+                '<div class="text-right font-bold ' + (s.status === "ACTIVE" ? "text-emerald-400" : "text-amber-300") + '">' +
+                (s.status === "ACTIVE" ? "● ACTIVE (" + fmt(s.cc_tips) + " CC)" : "Tips: " + fmt(totalTips)) + '</div></div>';
+            }).join("")
+          : '<p class="text-slate-500">No shifts logged yet.</p>';
+      }
+
+      const { data: audits } = await db.from("governance_audits")
+        .select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(8);
+
+      const auditBox = document.getElementById("governance-audit-list");
+      if (auditBox) {
+        auditBox.innerHTML = (audits && audits.length)
+          ? audits.map(function(a) {
+              const t = a.created_at ? new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+              const label = a.audit_type || a.action_type || "AUDIT";
+              const desc = a.summary || ((a.requested_by || "") + " • Approved: " + (a.approved_by || "") + " — " + (a.reason || ""));
+              return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">' +
+                '<div class="flex justify-between font-bold"><span class="text-rose-400">' + label + '</span><span class="text-slate-400">' + t + '</span></div>' +
+                '<div class="text-[11px] text-slate-300">' + desc + '</div></div>';
+            }).join("")
+          : '<p class="text-slate-500">No manager overrides recorded.</p>';
+      }
+    }
+
+    function updateShiftBadge() {
+      const badge = document.getElementById("active-shift-badge");
+      const timerLabel = document.getElementById("shift-timer-label");
+      const ccBox = document.getElementById("declare-cc-tips");
+      if (!badge) return;
+      if (activeShiftRecord) {
+        const started = new Date(activeShiftRecord.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        badge.textContent = "● Clocked In (" + started + ")";
+        badge.className = "px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-xs font-black text-emerald-300";
+        if (timerLabel) timerLabel.textContent = "Active shift started at " + started + " @ " + fmt(activeShiftRecord.hourly_rate) + "/hr.";
+        if (ccBox) ccBox.value = Number(activeShiftRecord.cc_tips || 0).toFixed(2);
+      } else {
+        badge.textContent = "Status: Off Shift";
+        badge.className = "px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300";
+        if (timerLabel) timerLabel.textContent = "Tap below to start your paid shift on this terminal.";
+        if (ccBox) ccBox.value = "0.00";
+      }
+    }
+
+    async function clockInStaff() {
+      if (!currentUser) return alert("Log in first.");
+      if (activeShiftRecord) return alert("You are already clocked in!");
+      const { data, error } = await db.from("timeclock_shifts").insert({
         venue_id: VENUE_ID,
-        staff_id: currentUser ? currentUser.id : null,
-        tab_name: document.getElementById("ticket-tab-name").value || "Bar Walk-In",
-        service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
-        guest_count_stated: guestCountStated,
-        guest_count_calculated: calcGuests,
-        is_owner_skin: isOwnerSkinActive,
-        subtotal: subtotal,
-        tax: tax,
-        total_amount: total,
-        status: "CLOSED"
+        staff_id: currentUser.id,
+        staff_name: currentUser.full_name,
+        role_tier: currentUser.role_tier || currentUser.role || "Staff",
+        hourly_rate: Number(currentUser.hourly_rate || 0),
+        status: "ACTIVE"
       }).select().single();
-
-      if (error) {
-        alert("Error pushing check: " + error.message);
-        return;
-      }
-
-      if (isOwnerSkinActive) {
-        await db.from("governance_audits").insert({
-          venue_id: VENUE_ID,
-          audit_type: "OWNER_SKIN_CONSUMPTION",
-          severity: "INFO",
-          summary: `Owner's Skin Ticket ($${total.toFixed(2)} at COGS) logged by ${currentUser.full_name} — Queued for EOD Owner Email.`
-        });
-      }
-
-      ticket = [];
-      renderTicket();
-      alert(`✅ Check Closed ($${total.toFixed(2)}) & Pushed to REHG Carbon Execution Engines!`);
+      if (error) return alert("Clock-in error: " + error.message);
+      activeShiftRecord = data;
+      await loadTimeclockAndAudits();
+      alert("✅ " + currentUser.full_name + " clocked in!");
     }
 
-    // =========================================================================
-    // TIMECLOCK, 86 EDITOR & EXECUTION ENGINES TELEMETRY
-    // =========================================================================
-    async function handleClockAction(type) {
-      const tips = parseFloat(document.getElementById("declared-cash-tips").value || "0");
-      await db.from("governance_audits").insert({
-        venue_id: VENUE_ID,
-        audit_type: type,
-        severity: "INFO",
-        summary: `${currentUser.full_name} (${currentUser.role_tier}) ${type} — Declared Cash Tips: $${tips.toFixed(2)}`
-      });
-      alert(`✅ ${type} recorded for ${currentUser.full_name}. Cash tips declared: $${tips.toFixed(2)}`);
+    async function clockOutStaff() {
+      if (!currentUser) return alert("Log in first.");
+      if (!activeShiftRecord) return alert("No active shift found to clock out.");
+      const cash_tips = Math.max(0, parseFloat(document.getElementById("declare-cash-tips").value || "0"));
+      const cc_tips = Number(activeShiftRecord.cc_tips || 0);
+      const { error } = await db.from("timeclock_shifts").update({
+        clock_out: new Date().toISOString(),
+        cash_tips: cash_tips,
+        cc_tips: cc_tips,
+        status: "COMPLETED"
+      }).eq("id", activeShiftRecord.id);
+      if (error) return alert("Clock-out error: " + error.message);
+      document.getElementById("declare-cash-tips").value = "";
+      activeShiftRecord = null;
+      await loadTimeclockAndAudits();
+      alert("✅ Shift closed! Cash Tips: " + fmt(cash_tips) + " | Auto-Claimed CC Tips: " + fmt(cc_tips));
     }
 
     function triggerPageManager() {
-      alert(`📟 SMS / Push Alert dispatched to clocked-in Manager: "${currentUser.full_name} needs manager assistance at Carbon Terminal."`);
+      const who = currentUser ? currentUser.full_name : "Terminal";
+      alert("📟 Alert dispatched to Manager on Duty: '" + who + " needs assistance at Carbon Terminal.'");
     }
 
+    // MENU & STAFF PROVISIONING + INLINE PRICE/COGS EDITOR
     function update86Ticker() {
-      const out = menuItems.filter(m => m.is_86d).map(m => m.name);
+      const out = menuItems.filter(function(m) { return m.is_86d; }).map(function(m) { return m.name; });
       document.getElementById("eighty-six-ticker").textContent = out.length ? out.join(" • ") : "All items in stock";
     }
 
     function renderAdminMenuList() {
       const list = document.getElementById("admin-menu-list");
+      if (!list) return;
       list.innerHTML = "";
-      menuItems.forEach(item => {
+      menuItems.forEach(function(item) {
         const row = document.createElement("div");
-        row.className = "flex items-center justify-between bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-xs";
-        row.innerHTML = `
-          <div>
-            <span class="font-black text-white text-sm">${item.name}</span>
-            <span class="ml-3 text-emerald-400 font-bold">Menu: $${Number(item.price).toFixed(2)}</span>
-            <span class="ml-3 text-amber-400 font-bold">Owner COGS: $${Number(item.wholesale_cogs || 0).toFixed(2)}</span>
-          </div>
-          <button onclick="toggle86Status('${item.id}', ${!item.is_86d})" class="px-3 py-1.5 rounded-lg font-bold ${item.is_86d ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-300'}">
-            ${item.is_86d ? "86'D (Click to Restore)" : "In Stock (Click to 86)"}
-          </button>
-        `;
+        row.className = "flex flex-wrap items-center justify-between gap-3 bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-xs";
+        row.innerHTML =
+          '<div>' +
+            '<span class="font-black text-white text-sm">' + item.name + '</span>' +
+            '<span class="ml-2 px-2 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] font-bold uppercase">' + (item.category || "BAR") + '</span>' +
+          '</div>' +
+          '<div class="flex flex-wrap items-center gap-2">' +
+            '<label class="text-slate-400">Price:</label>' +
+            '<input id="edit-price-' + item.id + '" type="number" step="0.01" value="' + Number(item.price || 0).toFixed(2) + '" class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold" />' +
+            '<label class="text-slate-400">COGS:</label>' +
+            '<input id="edit-cogs-' + item.id + '" type="number" step="0.01" value="' + Number(item.wholesale_cogs || 0).toFixed(2) + '" class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold" />' +
+            '<button onclick="saveMenuItemEdits(\'' + item.id + '\')" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-black">Save</button>' +
+            '<button onclick="toggle86Status(\'' + item.id + '\', ' + (!item.is_86d) + ')" class="px-3 py-1.5 rounded-lg font-bold ' + (item.is_86d ? "bg-rose-500 text-white" : "bg-slate-800 text-slate-300") + '">' +
+              (item.is_86d ? "86D (Restore)" : "In Stock (86)") +
+            '</button>' +
+          '</div>';
         list.appendChild(row);
       });
     }
 
+    async function saveMenuItemEdits(itemId) {
+      const price = parseFloat(document.getElementById("edit-price-" + itemId).value || "0");
+      const wholesale_cogs = parseFloat(document.getElementById("edit-cogs-" + itemId).value || "0");
+      const { error } = await db.from("menu_items").update({ price: price, wholesale_cogs: wholesale_cogs }).eq("id", itemId);
+      if (error) return alert("Error saving item: " + error.message);
+      const target = menuItems.find(function(m) { return m.id === itemId; });
+      if (target) { target.price = price; target.wholesale_cogs = wholesale_cogs; }
+      renderMenuGrid();
+      renderAdminMenuList();
+      alert("✅ Menu item price & COGS updated!");
+    }
+
+    function renderAdminStaffList() {
+      const box = document.getElementById("admin-staff-list");
+      if (!box) return;
+      box.innerHTML = staffList.map(function(s) {
+        return '<div class="flex items-center justify-between bg-slate-950 border border-slate-800 px-3.5 py-2.5 rounded-xl">' +
+          '<div><div class="font-bold text-white">' + s.full_name + '</div>' +
+          '<div class="text-[11px] text-slate-400">' + (s.role_tier || s.role) + (s.custom_title ? " • " + s.custom_title : "") + " • " + fmt(s.hourly_rate || 0) + '/hr</div></div>' +
+          '<span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-amber-500/40 text-amber-300 font-black">PIN: ' + s.pin_code + '</span></div>';
+      }).join("");
+    }
+
     async function toggle86Status(itemId, newState) {
       await db.from("menu_items").update({ is_86d: newState }).eq("id", itemId);
-      const target = menuItems.find(m => m.id === itemId);
+      const target = menuItems.find(function(m) { return m.id === itemId; });
       if (target) target.is_86d = newState;
       update86Ticker();
       renderAdminMenuList();
@@ -1004,59 +1379,33 @@
       alert("✅ Daily Special updated across all Carbon Terminals!");
     }
 
-    async function loadExecutionEngines() {
-      const [{ data: orders }, { data: audits }] = await Promise.all([
-        db.from("orders").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }),
-        db.from("governance_audits").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(15)
-      ]);
-
-      const allOrders = orders || [];
-      const retailRev = allOrders.filter(o => !o.is_owner_skin).reduce((s, o) => s + Number(o.total_amount || 0), 0);
-      const ownerCogs = allOrders.filter(o => o.is_owner_skin).reduce((s, o) => s + Number(o.total_amount || 0), 0);
-      const statedG = allOrders.reduce((s, o) => s + Number(o.guest_count_stated || 0), 0);
-      const calcG = allOrders.reduce((s, o) => s + Number(o.guest_count_calculated || 0), 0);
-
-      document.getElementById("kpi-revenue").textContent = `$${retailRev.toFixed(2)}`;
-      document.getElementById("kpi-ownerskin").textContent = `$${ownerCogs.toFixed(2)}`;
-      document.getElementById("kpi-guests").textContent = `${statedG} / ${calcG}`;
-
-      const feed = document.getElementById("audit-feed-list");
-      feed.innerHTML = (audits || []).map(a => `
-        <div class="bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg flex justify-between">
-          <span><strong class="text-amber-400">[${a.audit_type}]</strong> ${a.summary}</span>
-          <span class="text-slate-500">${new Date(a.created_at).toLocaleTimeString()}</span>
-        </div>
-      `).join("") || "<div>No audit logs yet.</div>";
-    }
-async function createMenuItem() {
+    async function createMenuItem() {
       const name = document.getElementById("add-item-name").value.trim();
       const category = document.getElementById("add-item-cat").value;
       const price = parseFloat(document.getElementById("add-item-price").value || "0");
       const wholesale_cogs = parseFloat(document.getElementById("add-item-cogs").value || "0");
       const speed_screen_priority = parseInt(document.getElementById("add-item-priority").value || "10");
-
       if (!name) return alert("Enter an item name.");
 
       const { data, error } = await db.from("menu_items").insert({
         venue_id: VENUE_ID,
-        name,
-        category,
-        price,
-        wholesale_cogs,
-        speed_screen_priority,
+        name: name,
+        category: category,
+        price: price,
+        wholesale_cogs: wholesale_cogs,
+        speed_screen_priority: speed_screen_priority,
         packaging_recipe: [{ item: "12oz Rocks Cup", qty: 1 }, { item: "Black Bev Nap", qty: 1 }]
       }).select().single();
-
       if (error) return alert("Error adding item: " + error.message);
 
       menuItems.push(data);
-      menuItems.sort((a, b) => (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99));
+      menuItems.sort(function(a, b) { return (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99); });
       renderMenuGrid();
       renderAdminMenuList();
       document.getElementById("add-item-name").value = "";
       document.getElementById("add-item-price").value = "";
       document.getElementById("add-item-cogs").value = "";
-      alert(`✅ "${name}" added live to Carbon Terminal!`);
+      alert("✅ '" + name + "' added live to Carbon Terminal!");
     }
 
     async function createStaffMember() {
@@ -1067,408 +1416,47 @@ async function createMenuItem() {
       const hourly_rate = parseFloat(document.getElementById("add-staff-rate").value || "15");
 
       if (!full_name || pin_code.length !== 4) return alert("Enter full name and a 4-digit PIN.");
-      if (staffList.some(s => s.pin_code === pin_code)) return alert("That 4-digit PIN is already assigned.");
+      if (staffList.some(function(s) { return s.pin_code === pin_code; })) return alert("That 4-digit PIN is already assigned.");
 
       const { data, error } = await db.from("staff_users").insert({
         venue_id: VENUE_ID,
-        full_name,
+        full_name: full_name,
         role: role_tier,
-        role_tier,
-        custom_title,
-        pin_code,
-        hourly_rate
+        role_tier: role_tier,
+        custom_title: custom_title,
+        pin_code: pin_code,
+        hourly_rate: hourly_rate
       }).select().single();
-
-      if (error) return alert("Error adding staff: " + error.message);
+      if (error) return alert("Error adding employee: " + error.message);
 
       staffList.push(data);
+      renderAdminStaffList();
       document.getElementById("add-staff-name").value = "";
       document.getElementById("add-staff-title").value = "";
       document.getElementById("add-staff-pin").value = "";
-      alert(`✅ ${full_name} (${role_tier}) activated with PIN ${pin_code}!`);
-    }
-    // =========================================================================
-    // PILLAR 2: OPEN TABS, KDS (KITCHEN) & SERVICE BAR ROUTING ENGINE
-    // =========================================================================
-    let openTabsList = [];
-    let activeOpenTabId = null;
-    let prepTicketsList = [];
-
-    async function loadOpenTabs() {
-      const { data } = await db.from("orders")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .eq("status", "OPEN")
-        .order("created_at", { ascending: true });
-      openTabsList = data || [];
-      renderOpenTabsStrip();
+      alert("✅ " + full_name + " (" + role_tier + ") activated with PIN " + pin_code + "!");
     }
 
-    function renderOpenTabsStrip() {
-      const strip = document.getElementById("open-tabs-strip");
-      if (!strip) return;
-      if (!openTabsList.length) {
-        strip.innerHTML = `<span class="text-[11px] text-slate-500">No open bar/VIP tabs</span>`;
-        return;
-      }
-      strip.innerHTML = openTabsList.map(t => {
-        const active = t.id === activeOpenTabId;
-        return `<button onclick="recallOpenTab('${t.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${active ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800'}">
-          📌 ${t.tab_name || 'Tab'} ($${Number(t.total_retail || 0).toFixed(2)})
-        </button>`;
-      }).join("");
-    }
-
-    async function routeItemsToPrep(orderId, tabName, items) {
-      if (!items || !items.length) return;
-      const kitchenItems = items.filter(i => (i.category || "").toUpperCase() === "KITCHEN");
-      const barItems = items.filter(i => (i.category || "").toUpperCase() !== "KITCHEN");
-      const serverName = currentStaff ? currentStaff.full_name : "Terminal";
-
-      const tickets = [];
-      if (kitchenItems.length) {
-        tickets.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "KITCHEN", items: kitchenItems, server_name: serverName });
-      }
-      if (barItems.length) {
-        tickets.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "SERVICE_BAR", items: barItems, server_name: serverName });
-      }
-      if (tickets.length) {
-        await db.from("prep_tickets").insert(tickets);
-        await loadPrepTickets();
-      }
-    }
-
-    async function holdOpenTab() {
-      if (!currentTicket.length) return alert("Add items to the ticket before holding a tab.");
-      const tabInput = document.getElementById("active-tab-name");
-      const tabName = (tabInput.value.trim() || `Bar Tab #${openTabsList.length + 1}`);
-      const totalRetail = currentTicket.reduce((s, i) => s + (Number(i.price || 0) * i.qty), 0);
-      const totalCogs = currentTicket.reduce((s, i) => s + (Number(i.wholesale_cogs || 0) * i.qty), 0);
-
-      let orderId = activeOpenTabId;
-      if (activeOpenTabId) {
-        await db.from("orders").update({
-          tab_name: tabName,
-          items: currentTicket,
-          total_retail: totalRetail,
-          total_cogs: totalCogs
-        }).eq("id", activeOpenTabId);
-      } else {
-        const { data, error } = await db.from("orders").insert({
-          venue_id: VENUE_ID,
-          staff_id: currentStaff ? currentStaff.id : null,
-          tab_name: tabName,
-          order_type: "OPEN_TAB",
-          status: "OPEN",
-          items: currentTicket,
-          total_retail: totalRetail,
-          total_cogs: totalCogs
-        }).select().single();
-        if (error) return alert("Error holding tab: " + error.message);
-        orderId = data.id;
-      }
-
-      await routeItemsToPrep(orderId, tabName, currentTicket);
-      currentTicket = [];
-      activeOpenTabId = null;
-      tabInput.value = "";
-      renderTicket();
-      await loadOpenTabs();
-      alert(`📌 Tab "${tabName}" saved & routed to KDS / Service Bar!`);
-    }
-
-    function recallOpenTab(tabId) {
-      const tab = openTabsList.find(t => t.id === tabId);
-      if (!tab) return;
-      activeOpenTabId = tab.id;
-      currentTicket = Array.isArray(tab.items) ? JSON.parse(JSON.stringify(tab.items)) : [];
-      document.getElementById("active-tab-name").value = tab.tab_name || "";
-      renderTicket();
-      renderOpenTabsStrip();
-    }
-
-    async function loadPrepTickets() {
-      const { data } = await db.from("prep_tickets")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .eq("status", "PENDING")
-        .order("created_at", { ascending: true });
-      prepTicketsList = data || [];
-      renderPrepQueues();
-    }
-
-    function renderPrepQueues() {
-      const kitchen = prepTicketsList.filter(t => t.station === "KITCHEN");
-      const bar = prepTicketsList.filter(t => t.station !== "KITCHEN");
-
-      const badge = document.getElementById("kds-badge");
-      if (badge) {
-        badge.textContent = prepTicketsList.length;
-        badge.classList.toggle("hidden", prepTicketsList.length === 0);
-      }
-
-      const kCount = document.getElementById("kds-kitchen-count");
-      const bCount = document.getElementById("kds-bar-count");
-      if (kCount) kCount.textContent = `${kitchen.length} active`;
-      if (bCount) bCount.textContent = `${bar.length} active`;
-
-      const renderCard = (t, accent) => {
-        const mins = Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 60000));
-        const itemsHtml = (t.items || []).map(i => `<div class="flex justify-between text-xs text-white"><span><strong class="${accent}">${i.qty}x</strong> ${i.name}</span></div>`).join("");
-        return `<div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-xs font-black text-white">${t.tab_name}</span>
-              <span class="ml-2 text-[10px] text-slate-400">by ${t.server_name || 'Staff'} • ${mins}m ago</span>
-            </div>
-            <button onclick="bumpPrepTicket('${t.id}')" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] uppercase">✓ Bump</button>
-          </div>
-          <div class="space-y-1 border-t border-slate-800/80 pt-2">${itemsHtml}</div>
-        </div>`;
-      };
-
-      const kList = document.getElementById("kds-kitchen-list");
-      const bList = document.getElementById("kds-bar-list");
-      if (kList) kList.innerHTML = kitchen.length ? kitchen.map(t => renderCard(t, "text-amber-400")).join("") : `<p class="text-xs text-slate-500">No active kitchen tickets.</p>`;
-      if (bList) bList.innerHTML = bar.length ? bar.map(t => renderCard(t, "text-emerald-400")).join("") : `<p class="text-xs text-slate-500">No active service bar tickets.</p>`;
-    }
-
-    async function bumpPrepTicket(ticketId) {
-      await db.from("prep_tickets").update({ status: "BUMPED", bumped_at: new Date().toISOString() }).eq("id", ticketId);
-      await loadPrepTickets();
-    }
-
-    // Wrap closeAndPushCheck so closing a tab marks it CLOSED and routes prep tickets
-    const _origCloseAndPushCheck = closeAndPushCheck;
-    closeAndPushCheck = async function() {
-      const tabName = (document.getElementById("active-tab-name")?.value.trim() || "Quick Pour");
-      const itemsSnapshot = JSON.parse(JSON.stringify(currentTicket));
-      const closingTabId = activeOpenTabId;
-      await _origCloseAndPushCheck();
-      if (closingTabId) {
-        await db.from("orders").update({ status: "CLOSED", tab_name: tabName }).eq("id", closingTabId);
-        activeOpenTabId = null;
-      }
-      if (document.getElementById("active-tab-name")) document.getElementById("active-tab-name").value = "";
-      await routeItemsToPrep(closingTabId, tabName, itemsSnapshot);
-      await loadOpenTabs();
-    };
-
-    // Boot Pillar 2 queues automatically
-    setTimeout(() => { loadOpenTabs(); loadPrepTickets(); }, 1200);
-// =========================================================================
-    // PILLAR 3: LIVE TIMECLOCK, TIP DECLARATIONS & MANAGER OVERRIDE AUDITS
-    // =========================================================================
-    let activeShiftRecord = null;
-    const OVERRIDE_TIERS = ["Manager", "Admin", "Owner"];
-
-    async function loadTimeclockAndAudits() {
-      if (!currentStaff) return;
-
-      // 1. Check if current logged-in staff has an ACTIVE shift
-      const { data: activeRows } = await db.from("timeclock_shifts")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .eq("staff_id", currentStaff.id)
-        .eq("status", "ACTIVE")
-        .order("clock_in", { ascending: false })
-        .limit(1);
-
-      activeShiftRecord = (activeRows && activeRows.length) ? activeRows[0] : null;
-      updateShiftBadge();
-
-      // 2. Load recent shifts across venue
-      const { data: recentShifts } = await db.from("timeclock_shifts")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .order("clock_in", { ascending: false })
-        .limit(8);
-
-      const shiftBox = document.getElementById("recent-shifts-list");
-      if (shiftBox) {
-        shiftBox.innerHTML = (recentShifts && recentShifts.length)
-          ? recentShifts.map(s => {
-              const inTime = new Date(s.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-              const outTime = s.clock_out ? new Date(s.clock_out).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "ON SHIFT";
-              const tips = (Number(s.cash_tips || 0) + Number(s.cc_tips || 0)).toFixed(2);
-              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-white">${s.staff_name}</span>
-                  <span class="text-slate-400 ml-1.5">(${s.role_tier})</span>
-                  <div class="text-[11px] text-slate-400">${inTime} → ${outTime}</div>
-                </div>
-                <span class="font-bold ${s.status === 'ACTIVE' ? 'text-emerald-400' : 'text-amber-300'}">
-                  ${s.status === 'ACTIVE' ? '● ACTIVE' : `Tips: $${tips}`}
-                </span>
-              </div>`;
-            }).join("")
-          : `<p class="text-slate-500">No shifts logged yet.</p>`;
-      }
-
-      // 3. Load recent governance override audits
-      const { data: audits } = await db.from("governance_audits")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .order("created_at", { ascending: false })
-        .limit(8);
-
-      const auditBox = document.getElementById("governance-audit-list");
-      if (auditBox) {
-        auditBox.innerHTML = (audits && audits.length)
-          ? audits.map(a => {
-              const t = new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">
-                <div class="flex justify-between font-bold">
-                  <span class="text-rose-400">${a.action_type}</span>
-                  <span class="text-slate-400">${t}</span>
-                </div>
-                <div class="text-[11px] text-slate-300">By ${a.requested_by} • Approved: <strong>${a.approved_by}</strong> (${a.approver_tier})</div>
-                ${a.reason ? `<div class="text-[11px] text-slate-400 italic">"${a.reason}"</div>` : ""}
-              </div>`;
-            }).join("")
-          : `<p class="text-slate-500">No manager overrides recorded.</p>`;
-      }
-    }
-
-    function updateShiftBadge() {
-      const badge = document.getElementById("active-shift-badge");
-      const timerLabel = document.getElementById("shift-timer-label");
-      if (!badge) return;
-      if (activeShiftRecord) {
-        const started = new Date(activeShiftRecord.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        badge.textContent = `● Clocked In (${started})`;
-        badge.className = "px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-xs font-black text-emerald-300";
-        if (timerLabel) timerLabel.textContent = `Active shift started at ${started} @ $${Number(activeShiftRecord.hourly_rate || 0).toFixed(2)}/hr.`;
-      } else {
-        badge.textContent = "Status: Off Shift";
-        badge.className = "px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300";
-        if (timerLabel) timerLabel.textContent = "Tap below to start your paid shift on this terminal.";
-      }
-    }
-
-    async function clockInStaff() {
-      if (!currentStaff) return alert("Log in with your 4-digit PIN first.");
-      if (activeShiftRecord) return alert("You are already clocked in!");
-
-      const { data, error } = await db.from("timeclock_shifts").insert({
-        venue_id: VENUE_ID,
-        staff_id: currentStaff.id,
-        staff_name: currentStaff.full_name,
-        role_tier: currentStaff.role_tier || currentStaff.role || "Staff",
-        hourly_rate: currentStaff.hourly_rate || 0,
-        status: "ACTIVE"
-      }).select().single();
-
-      if (error) return alert("Clock-in error: " + error.message);
-      activeShiftRecord = data;
-      await loadTimeclockAndAudits();
-      alert(`✅ ${currentStaff.full_name} clocked in!`);
-    }
-
-    async function clockOutStaff() {
-      if (!currentStaff) return alert("Log in with your 4-digit PIN first.");
-      if (!activeShiftRecord) return alert("No active shift found to clock out.");
-
-      const cash_tips = parseFloat(document.getElementById("declare-cash-tips").value || "0");
-      const cc_tips = parseFloat(document.getElementById("declare-cc-tips").value || "0");
-
-      const { error } = await db.from("timeclock_shifts").update({
-        clock_out: new Date().toISOString(),
-        cash_tips,
-        cc_tips,
-        status: "COMPLETED"
-      }).eq("id", activeShiftRecord.id);
-
-      if (error) return alert("Clock-out error: " + error.message);
-
-      document.getElementById("declare-cash-tips").value = "";
-      document.getElementById("declare-cc-tips").value = "";
-      activeShiftRecord = null;
-      await loadTimeclockAndAudits();
-      alert(`✅ Shift closed & $${(cash_tips + cc_tips).toFixed(2)} in tips declared!`);
-    }
-
-    // Override requestManagerOverride to verify Manager/Admin/Owner PIN & log to governance_audits
-    requestManagerOverride = async function(actionType) {
-      if (!currentStaff) return alert("Log in first.");
-      const pin = prompt(`🛡️ MANAGER OVERRIDE REQUIRED (${actionType})\nEnter Manager, Admin, or Owner 4-Digit PIN:`);
-      if (!pin) return;
-
-      const approver = staffList.find(s => s.pin_code === pin.trim() && OVERRIDE_TIERS.includes(s.role_tier || s.role));
-      if (!approver) return alert("❌ Invalid or unauthorized PIN. Requires Manager, Admin, or Owner.");
-
-      const reason = prompt(`Approved by ${approver.full_name}.\nEnter brief reason for ${actionType}:`) || "Manager approved";
-      const amountAffected = currentTicket.reduce((s, i) => s + (Number(i.price || 0) * i.qty), 0);
-
-      await db.from("governance_audits").insert({
-        venue_id: VENUE_ID,
-        action_type: actionType,
-        requested_by: currentStaff.full_name,
-        approved_by: approver.full_name,
-        approver_tier: approver.role_tier || approver.role,
-        reason,
-        ticket_snapshot: currentTicket,
-        amount_affected: amountAffected
-      });
-
-      if (actionType === "VOID_TICKET") {
-        if (activeOpenTabId) {
-          await db.from("orders").update({ status: "VOIDED" }).eq("id", activeOpenTabId);
-          activeOpenTabId = null;
-          await loadOpenTabs();
-        }
-        currentTicket = [];
-        if (document.getElementById("active-tab-name")) document.getElementById("active-tab-name").value = "";
-        renderTicket();
-      } else if (actionType === "COMP_DISC" && currentTicket.length) {
-        currentTicket = currentTicket.map(i => ({ ...i, price: 0 }));
-        renderTicket();
-      } else if (actionType === "TRANSFER_CHECK") {
-        const newOwner = prompt("Transfer tab to which server/bartender name?");
-        if (newOwner && document.getElementById("active-tab-name")) {
-          const cur = document.getElementById("active-tab-name").value || "Tab";
-          document.getElementById("active-tab-name").value = `${cur} (${newOwner.trim()})`;
-        }
-      }
-
-      await loadTimeclockAndAudits();
-      alert(`🛡️ ${actionType} executed & logged under ${approver.full_name}.`);
-    };
-
-    // Refresh Pillar 3 data whenever PIN login succeeds or Timeclock tab opens
-    const _origSwitchTab = switchTab;
-    switchTab = function(tabName) {
-      _origSwitchTab(tabName);
-      if (tabName === "timeclock") loadTimeclockAndAudits();
-    };
-    setTimeout(() => { if (currentStaff) loadTimeclockAndAudits(); }, 1500);   
-// =========================================================================
-    // PILLAR 4: CARBON EXECUTION ENGINES (LIVE P&L GUARDRAILS & EOD Z-REPORT)
-    // =========================================================================
-    let latestEngineSnapshot = null;
-
+    // PILLAR 4: CARBON EXECUTION ENGINES & EOD Z-REPORT
     async function loadExecutionEngines() {
-      // 1. Fetch closed & open orders
-      const { data: orders } = await db.from("orders")
-        .select("*")
-        .eq("venue_id", VENUE_ID);
+      const [ordRes, shiftRes, auditRes, zRes] = await Promise.all([
+        db.from("orders").select("*").eq("venue_id", VENUE_ID),
+        db.from("timeclock_shifts").select("*").eq("venue_id", VENUE_ID),
+        db.from("governance_audits").select("*").eq("venue_id", VENUE_ID),
+        db.from("eod_reports").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(6)
+      ]);
 
-      const allOrders = orders || [];
-      const closedOrders = allOrders.filter(o => (o.status || "CLOSED") === "CLOSED");
-      const openOrders = allOrders.filter(o => o.status === "OPEN");
+      const allOrders = ordRes.data || [];
+      const closedOrders = allOrders.filter(function(o) { return (o.status || "CLOSED") === "CLOSED"; });
+      const openOrders = allOrders.filter(function(o) { return o.status === "OPEN"; });
 
-      const grossSales = closedOrders.reduce((s, o) => s + Number(o.total_retail || 0), 0);
-      const totalCogs = closedOrders.reduce((s, o) => s + Number(o.total_cogs || 0), 0);
+      const grossSales = closedOrders.reduce(function(s, o) { return s + Number(o.total_retail || o.subtotal || o.total_amount || 0); }, 0);
+      const totalCogs = closedOrders.reduce(function(s, o) { return s + Number(o.total_cogs || 0); }, 0);
       const cogsPct = grossSales > 0 ? (totalCogs / grossSales) * 100 : 0;
-
-      // 2. Fetch shifts for live labor & declared tips
-      const { data: shifts } = await db.from("timeclock_shifts")
-        .select("*")
-        .eq("venue_id", VENUE_ID);
 
       let laborCost = 0;
       let declaredTips = 0;
-      (shifts || []).forEach(sh => {
+      (shiftRes.data || []).forEach(function(sh) {
         const start = new Date(sh.clock_in).getTime();
         const end = sh.clock_out ? new Date(sh.clock_out).getTime() : Date.now();
         const hrs = Math.max(0, (end - start) / 3600000);
@@ -1476,17 +1464,12 @@ async function createMenuItem() {
         declaredTips += Number(sh.cash_tips || 0) + Number(sh.cc_tips || 0);
       });
 
-      // 3. Fetch manager override audits for voids/comps
-      const { data: audits } = await db.from("governance_audits")
-        .select("*")
-        .eq("venue_id", VENUE_ID);
-
-      const voidsCompsTotal = (audits || [])
-        .filter(a => ["VOID_TICKET", "COMP_DISC"].includes(a.action_type))
-        .reduce((s, a) => s + Number(a.amount_affected || 0), 0);
+      const voidsCompsCount = (auditRes.data || []).filter(function(a) {
+        const t = a.audit_type || a.action_type || "";
+        return t === "VOID_TICKET" || t === "COMP_ITEM" || t === "COMP_DISC";
+      }).length;
 
       const netMargin = grossSales - totalCogs - laborCost;
-
       latestEngineSnapshot = {
         gross_sales: grossSales,
         total_cogs: totalCogs,
@@ -1494,113 +1477,83 @@ async function createMenuItem() {
         cogs_pct: cogsPct,
         labor_cost: laborCost,
         declared_tips: declaredTips,
-        voids_comps_total: voidsCompsTotal,
+        voids_comps_total: voidsCompsCount,
         closed_checks_count: closedOrders.length,
         open_tabs_carried: openOrders.length
       };
 
-      // Update KPI Cards
-      const el = id => document.getElementById(id);
-      if (el("eng-gross-sales")) el("eng-gross-sales").textContent = `$${grossSales.toFixed(2)}`;
-      if (el("eng-checks-count")) el("eng-checks-count").textContent = `${closedOrders.length} closed checks • ${openOrders.length} open tabs`;
-      if (el("eng-total-cogs")) el("eng-total-cogs").textContent = `$${totalCogs.toFixed(2)}`;
+      document.getElementById("eng-gross-sales").textContent = fmt(grossSales);
+      document.getElementById("eng-checks-count").textContent = closedOrders.length + " closed checks • " + openOrders.length + " open tabs";
+      document.getElementById("eng-total-cogs").textContent = fmt(totalCogs);
 
-      const guardEl = el("eng-cogs-guardrail");
-      if (guardEl) {
-        const healthy = cogsPct <= 18.0;
-        guardEl.textContent = `${cogsPct.toFixed(1)}% COGS (${healthy ? "✓ WITHIN GUARDRAIL" : "⚠ ABOVE 18% TARGET"})`;
-        guardEl.className = `text-[11px] font-bold ${healthy ? "text-emerald-400" : "text-rose-400"}`;
-      }
+      const guardEl = document.getElementById("eng-cogs-guardrail");
+      const healthy = cogsPct <= 18.0;
+      guardEl.textContent = cogsPct.toFixed(1) + "% COGS (" + (healthy ? "✓ WITHIN GUARDRAIL" : "⚠ ABOVE 18% TARGET") + ")";
+      guardEl.className = "text-[11px] font-bold " + (healthy ? "text-emerald-400" : "text-rose-400");
 
-      if (el("eng-labor-cost")) el("eng-labor-cost").textContent = `$${laborCost.toFixed(2)}`;
-      if (el("eng-tips-total")) el("eng-tips-total").textContent = `Declared Tips: $${declaredTips.toFixed(2)}`;
-      if (el("eng-net-margin")) el("eng-net-margin").textContent = `$${netMargin.toFixed(2)}`;
-      if (el("eng-voids-total")) el("eng-voids-total").textContent = `Voids/Comps: $${voidsCompsTotal.toFixed(2)}`;
+      document.getElementById("eng-labor-cost").textContent = fmt(laborCost);
+      document.getElementById("eng-tips-total").textContent = "Claimed Tips: " + fmt(declaredTips);
+      document.getElementById("eng-net-margin").textContent = fmt(netMargin);
+      document.getElementById("eng-voids-total").textContent = "Override Events: " + voidsCompsCount;
 
-      // 4. Aggregate Top-Performing Menu Items
       const itemMap = {};
-      closedOrders.forEach(o => {
-        (o.items || []).forEach(i => {
+      closedOrders.forEach(function(o) {
+        (o.items || []).forEach(function(i) {
           const key = i.name || "Item";
           if (!itemMap[key]) itemMap[key] = { name: key, qty: 0, rev: 0, cogs: 0 };
-          itemMap[key].qty += Number(i.qty || 1);
-          itemMap[key].rev += Number(i.price || 0) * Number(i.qty || 1);
-          itemMap[key].cogs += Number(i.wholesale_cogs || 0) * Number(i.qty || 1);
+          const q = Number(i.qty || 1);
+          itemMap[key].qty += q;
+          itemMap[key].rev += Number(i.price || 0) * q;
+          itemMap[key].cogs += Number(i.cogs || i.wholesale_cogs || 0) * q;
         });
       });
 
-      const topItems = Object.values(itemMap).sort((a, b) => b.rev - a.rev).slice(0, 6);
-      if (el("eng-top-items")) {
-        el("eng-top-items").innerHTML = topItems.length
-          ? topItems.map(it => {
-              const marginPct = it.rev > 0 ? (((it.rev - it.cogs) / it.rev) * 100).toFixed(0) : 100;
-              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-white">${it.qty}x ${it.name}</span>
-                  <span class="text-[11px] text-slate-400 ml-2">COGS: $${it.cogs.toFixed(2)}</span>
-                </div>
-                <div class="text-right">
-                  <span class="font-black text-emerald-400">$${it.rev.toFixed(2)}</span>
-                  <span class="text-[10px] text-slate-400 ml-1.5">(${marginPct}% margin)</span>
-                </div>
-              </div>`;
-            }).join("")
-          : `<p class="text-slate-500">Close checks on the register to populate live product telemetry.</p>`;
-      }
+      const topItems = Object.values(itemMap).sort(function(a, b) { return b.rev - a.rev; }).slice(0, 6);
+      document.getElementById("eng-top-items").innerHTML = topItems.length
+        ? topItems.map(function(it) {
+            const mPct = it.rev > 0 ? (((it.rev - it.cogs) / it.rev) * 100).toFixed(0) : 100;
+            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">' +
+              '<div><span class="font-bold text-white">' + it.qty + "x " + it.name + '</span><span class="text-[11px] text-slate-400 ml-2">COGS: ' + fmt(it.cogs) + '</span></div>' +
+              '<div><span class="font-black text-emerald-400">' + fmt(it.rev) + '</span><span class="text-[10px] text-slate-400 ml-1.5">(' + mPct + '% margin)</span></div></div>';
+          }).join("")
+        : '<p class="text-slate-500">Close checks on the register to populate live product telemetry.</p>';
 
-      // 5. Load EOD Z-Report History
-      const { data: zReports } = await db.from("eod_reports")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      if (el("eng-eod-history")) {
-        el("eng-eod-history").innerHTML = (zReports && zReports.length)
-          ? zReports.map(z => {
-              const dt = new Date(z.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">
-                <div class="flex justify-between font-bold">
-                  <span class="text-emerald-400">Z-Report • ${dt}</span>
-                  <span class="text-white">Sales: $${Number(z.gross_sales || 0).toFixed(2)}</span>
-                </div>
-                <div class="text-[11px] text-slate-400">COGS: ${Number(z.cogs_pct || 0).toFixed(1)}% • Net: $${Number(z.net_margin || 0).toFixed(2)} • Closed by ${z.closed_by}</div>
-              </div>`;
-            }).join("")
-          : `<p class="text-slate-500">No EOD Z-Reports closed yet.</p>`;
-      }
+      const zReports = zRes.data || [];
+      document.getElementById("eng-eod-history").innerHTML = zReports.length
+        ? zReports.map(function(z) {
+            const dt = z.created_at ? new Date(z.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">' +
+              '<div class="flex justify-between font-bold"><span class="text-emerald-400">Z-Report • ' + dt + '</span><span class="text-white">Sales: ' + fmt(z.gross_sales) + '</span></div>' +
+              '<div class="text-[11px] text-slate-400">COGS: ' + Number(z.cogs_pct || 0).toFixed(1) + "% • Net: " + fmt(z.net_margin) + " • Closed by " + z.closed_by + '</div></div>';
+          }).join("")
+        : '<p class="text-slate-500">No EOD Z-Reports closed yet.</p>';
     }
 
     async function runNightlyEodCloseout() {
-      if (!currentStaff) return alert("Log in first.");
+      if (!currentUser) return alert("Log in first.");
       if (!latestEngineSnapshot) await loadExecutionEngines();
-
-      const warnOpen = latestEngineSnapshot.open_tabs_carried > 0
-        ? `\n⚠️ WARNING: ${latestEngineSnapshot.open_tabs_carried} open tab(s) are still unclosed.`
+      const warn = latestEngineSnapshot.open_tabs_carried > 0
+        ? "\nWARNING: " + latestEngineSnapshot.open_tabs_carried + " open tab(s) still unclosed."
         : "";
-      const notes = prompt(`🔒 RUN NIGHTLY EOD Z-REPORT\nGross Sales: $${latestEngineSnapshot.gross_sales.toFixed(2)} | COGS: ${latestEngineSnapshot.cogs_pct.toFixed(1)}% | Net Margin: $${latestEngineSnapshot.net_margin.toFixed(2)}${warnOpen}\n\nEnter optional EOD manager notes (or leave blank):`);
+      const notes = prompt(
+        "RUN NIGHTLY EOD Z-REPORT\nGross Sales: " + fmt(latestEngineSnapshot.gross_sales) +
+        " | COGS: " + latestEngineSnapshot.cogs_pct.toFixed(1) + "% | Net: " + fmt(latestEngineSnapshot.net_margin) +
+        warn + "\n\nEnter optional EOD manager notes:"
+      );
       if (notes === null) return;
 
-      const { error } = await db.from("eod_reports").insert({
+      const { error } = await db.from("eod_reports").insert(Object.assign({
         venue_id: VENUE_ID,
-        closed_by: currentStaff.full_name,
-        closed_by_tier: currentStaff.role_tier || currentStaff.role || "Owner",
-        ...latestEngineSnapshot,
+        closed_by: currentUser.full_name,
+        closed_by_tier: currentUser.role_tier || currentUser.role || "Owner",
         notes: notes.trim() || "Standard nightly batch closeout"
-      });
+      }, latestEngineSnapshot));
 
       if (error) return alert("EOD Z-Report error: " + error.message);
       await loadExecutionEngines();
       alert("✅ Nightly EOD Z-Report locked and archived to Supabase!");
     }
 
-    // Hook into switchTab so opening Carbon Execution Engines loads live telemetry immediately
-    const _origSwitchTabP4 = switchTab;
-    switchTab = function(tabName) {
-      _origSwitchTabP4(tabName);
-      if (tabName === "engines") loadExecutionEngines();
-    };
-    
     initCarbonOS();
   </script>
 </body>
