@@ -263,33 +263,46 @@
   <!-- ===================================================================== -->
   <!-- VIEW 2: TIMECLOCK & TIP DECLARATION (ALL ROLES INCLUDING BARBACK/DOOR)-->
   <!-- ===================================================================== -->
-  <section id="view-timeclock" class="hidden flex-1 p-6 max-w-2xl w-full mx-auto">
+  <section id="view-timeclock" class="hidden flex-1 p-6 max-w-4xl w-full mx-auto space-y-6">
     <div class="titanium-panel rounded-2xl p-6 space-y-5">
-      <div class="border-b border-slate-800 pb-4">
-        <span class="text-xs font-bold uppercase text-emerald-400">Pillar 3 Labor Governance</span>
-        <h2 class="text-2xl font-black text-white">Shift Timeclock & Tip Declaration</h2>
-        <p class="text-xs text-slate-400 mt-1">Weekly hours & cash/CC tip declarations sync directly to REHG 5.0 Payroll.</p>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
-          <div class="text-[11px] text-slate-400">Active Staff Member</div>
-          <div id="tc-staff-name" class="text-base font-bold text-white">--</div>
+          <span class="text-xs font-bold uppercase text-emerald-400">Pillar 3 Labor Governance</span>
+          <h2 class="text-2xl font-black text-white">Shift Timeclock & Tip Declaration</h2>
+          <p class="text-xs text-slate-400 mt-1">Live clock-in/out & cash/CC tip declarations sync directly to REHG Labor Payroll</p>
         </div>
-        <div>
-          <div class="text-[11px] text-slate-400">Weekly Hours Logged</div>
-          <div class="text-base font-bold text-emerald-400">24.5 hrs <span class="text-[10px] text-slate-500">(OT Alert at 32.0h)</span></div>
+        <div id="active-shift-badge" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300">
+          Status: Off Shift
         </div>
       </div>
 
-      <div class="space-y-3">
-        <label class="block text-xs font-bold text-slate-300">Declared Cash Tips ($)</label>
-        <input id="declared-cash-tips" type="number" step="0.01" placeholder="0.00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold" />
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-3">
+          <h3 class="text-xs font-black uppercase tracking-wider text-emerald-400">⏱️ Punch Clock</h3>
+          <p id="shift-timer-label" class="text-xs text-slate-400">Tap below to start your paid shift on this terminal.</p>
+          <button id="clock-in-btn" onclick="clockInStaff()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase transition">▶ Clock In Now</button>
+        </div>
 
-      <div class="grid grid-cols-2 gap-3 pt-2">
-        <button onclick="handleClockAction('CLOCK_IN')" class="py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm">🟢 PUNCH IN</button>
-        <button onclick="handleClockAction('CLOCK_OUT')" class="py-3.5 rounded-xl bg-rose-500 text-white font-black text-sm">🔴 PUNCH OUT & SUBMIT TIPS</button>
+        <div class="rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-3">
+          <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">💵 End-of-Shift Tip Declaration & Clock Out</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <input id="declare-cash-tips" type="number" step="0.01" placeholder="Cash Tips ($)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+            <input id="declare-cc-tips" type="number" step="0.01" placeholder="CC Tips ($)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <button id="clock-out-btn" onclick="clockOutStaff()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase transition">⏹ Declare Tips & Clock Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT SHIFTS & GOVERNANCE AUDIT TRAIL -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-white">📋 Recent Timeclock Shifts</h3>
+        <div id="recent-shifts-list" class="space-y-2 text-xs"></div>
+      </div>
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-rose-400">🛡️ Manager Override Audit Log</h3>
+        <div id="governance-audit-list" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </section>
@@ -1221,6 +1234,192 @@ async function createMenuItem() {
 
     // Boot Pillar 2 queues automatically
     setTimeout(() => { loadOpenTabs(); loadPrepTickets(); }, 1200);
+// =========================================================================
+    // PILLAR 3: LIVE TIMECLOCK, TIP DECLARATIONS & MANAGER OVERRIDE AUDITS
+    // =========================================================================
+    let activeShiftRecord = null;
+    const OVERRIDE_TIERS = ["Manager", "Admin", "Owner"];
+
+    async function loadTimeclockAndAudits() {
+      if (!currentStaff) return;
+
+      // 1. Check if current logged-in staff has an ACTIVE shift
+      const { data: activeRows } = await db.from("timeclock_shifts")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .eq("staff_id", currentStaff.id)
+        .eq("status", "ACTIVE")
+        .order("clock_in", { ascending: false })
+        .limit(1);
+
+      activeShiftRecord = (activeRows && activeRows.length) ? activeRows[0] : null;
+      updateShiftBadge();
+
+      // 2. Load recent shifts across venue
+      const { data: recentShifts } = await db.from("timeclock_shifts")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .order("clock_in", { ascending: false })
+        .limit(8);
+
+      const shiftBox = document.getElementById("recent-shifts-list");
+      if (shiftBox) {
+        shiftBox.innerHTML = (recentShifts && recentShifts.length)
+          ? recentShifts.map(s => {
+              const inTime = new Date(s.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              const outTime = s.clock_out ? new Date(s.clock_out).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "ON SHIFT";
+              const tips = (Number(s.cash_tips || 0) + Number(s.cc_tips || 0)).toFixed(2);
+              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-white">${s.staff_name}</span>
+                  <span class="text-slate-400 ml-1.5">(${s.role_tier})</span>
+                  <div class="text-[11px] text-slate-400">${inTime} → ${outTime}</div>
+                </div>
+                <span class="font-bold ${s.status === 'ACTIVE' ? 'text-emerald-400' : 'text-amber-300'}">
+                  ${s.status === 'ACTIVE' ? '● ACTIVE' : `Tips: $${tips}`}
+                </span>
+              </div>`;
+            }).join("")
+          : `<p class="text-slate-500">No shifts logged yet.</p>`;
+      }
+
+      // 3. Load recent governance override audits
+      const { data: audits } = await db.from("governance_audits")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      const auditBox = document.getElementById("governance-audit-list");
+      if (auditBox) {
+        auditBox.innerHTML = (audits && audits.length)
+          ? audits.map(a => {
+              const t = new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              return `<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">
+                <div class="flex justify-between font-bold">
+                  <span class="text-rose-400">${a.action_type}</span>
+                  <span class="text-slate-400">${t}</span>
+                </div>
+                <div class="text-[11px] text-slate-300">By ${a.requested_by} • Approved: <strong>${a.approved_by}</strong> (${a.approver_tier})</div>
+                ${a.reason ? `<div class="text-[11px] text-slate-400 italic">"${a.reason}"</div>` : ""}
+              </div>`;
+            }).join("")
+          : `<p class="text-slate-500">No manager overrides recorded.</p>`;
+      }
+    }
+
+    function updateShiftBadge() {
+      const badge = document.getElementById("active-shift-badge");
+      const timerLabel = document.getElementById("shift-timer-label");
+      if (!badge) return;
+      if (activeShiftRecord) {
+        const started = new Date(activeShiftRecord.clock_in).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        badge.textContent = `● Clocked In (${started})`;
+        badge.className = "px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-xs font-black text-emerald-300";
+        if (timerLabel) timerLabel.textContent = `Active shift started at ${started} @ $${Number(activeShiftRecord.hourly_rate || 0).toFixed(2)}/hr.`;
+      } else {
+        badge.textContent = "Status: Off Shift";
+        badge.className = "px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300";
+        if (timerLabel) timerLabel.textContent = "Tap below to start your paid shift on this terminal.";
+      }
+    }
+
+    async function clockInStaff() {
+      if (!currentStaff) return alert("Log in with your 4-digit PIN first.");
+      if (activeShiftRecord) return alert("You are already clocked in!");
+
+      const { data, error } = await db.from("timeclock_shifts").insert({
+        venue_id: VENUE_ID,
+        staff_id: currentStaff.id,
+        staff_name: currentStaff.full_name,
+        role_tier: currentStaff.role_tier || currentStaff.role || "Staff",
+        hourly_rate: currentStaff.hourly_rate || 0,
+        status: "ACTIVE"
+      }).select().single();
+
+      if (error) return alert("Clock-in error: " + error.message);
+      activeShiftRecord = data;
+      await loadTimeclockAndAudits();
+      alert(`✅ ${currentStaff.full_name} clocked in!`);
+    }
+
+    async function clockOutStaff() {
+      if (!currentStaff) return alert("Log in with your 4-digit PIN first.");
+      if (!activeShiftRecord) return alert("No active shift found to clock out.");
+
+      const cash_tips = parseFloat(document.getElementById("declare-cash-tips").value || "0");
+      const cc_tips = parseFloat(document.getElementById("declare-cc-tips").value || "0");
+
+      const { error } = await db.from("timeclock_shifts").update({
+        clock_out: new Date().toISOString(),
+        cash_tips,
+        cc_tips,
+        status: "COMPLETED"
+      }).eq("id", activeShiftRecord.id);
+
+      if (error) return alert("Clock-out error: " + error.message);
+
+      document.getElementById("declare-cash-tips").value = "";
+      document.getElementById("declare-cc-tips").value = "";
+      activeShiftRecord = null;
+      await loadTimeclockAndAudits();
+      alert(`✅ Shift closed & $${(cash_tips + cc_tips).toFixed(2)} in tips declared!`);
+    }
+
+    // Override requestManagerOverride to verify Manager/Admin/Owner PIN & log to governance_audits
+    requestManagerOverride = async function(actionType) {
+      if (!currentStaff) return alert("Log in first.");
+      const pin = prompt(`🛡️ MANAGER OVERRIDE REQUIRED (${actionType})\nEnter Manager, Admin, or Owner 4-Digit PIN:`);
+      if (!pin) return;
+
+      const approver = staffList.find(s => s.pin_code === pin.trim() && OVERRIDE_TIERS.includes(s.role_tier || s.role));
+      if (!approver) return alert("❌ Invalid or unauthorized PIN. Requires Manager, Admin, or Owner.");
+
+      const reason = prompt(`Approved by ${approver.full_name}.\nEnter brief reason for ${actionType}:`) || "Manager approved";
+      const amountAffected = currentTicket.reduce((s, i) => s + (Number(i.price || 0) * i.qty), 0);
+
+      await db.from("governance_audits").insert({
+        venue_id: VENUE_ID,
+        action_type: actionType,
+        requested_by: currentStaff.full_name,
+        approved_by: approver.full_name,
+        approver_tier: approver.role_tier || approver.role,
+        reason,
+        ticket_snapshot: currentTicket,
+        amount_affected: amountAffected
+      });
+
+      if (actionType === "VOID_TICKET") {
+        if (activeOpenTabId) {
+          await db.from("orders").update({ status: "VOIDED" }).eq("id", activeOpenTabId);
+          activeOpenTabId = null;
+          await loadOpenTabs();
+        }
+        currentTicket = [];
+        if (document.getElementById("active-tab-name")) document.getElementById("active-tab-name").value = "";
+        renderTicket();
+      } else if (actionType === "COMP_DISC" && currentTicket.length) {
+        currentTicket = currentTicket.map(i => ({ ...i, price: 0 }));
+        renderTicket();
+      } else if (actionType === "TRANSFER_CHECK") {
+        const newOwner = prompt("Transfer tab to which server/bartender name?");
+        if (newOwner && document.getElementById("active-tab-name")) {
+          const cur = document.getElementById("active-tab-name").value || "Tab";
+          document.getElementById("active-tab-name").value = `${cur} (${newOwner.trim()})`;
+        }
+      }
+
+      await loadTimeclockAndAudits();
+      alert(`🛡️ ${actionType} executed & logged under ${approver.full_name}.`);
+    };
+
+    // Refresh Pillar 3 data whenever PIN login succeeds or Timeclock tab opens
+    const _origSwitchTab = switchTab;
+    switchTab = function(tabName) {
+      _origSwitchTab(tabName);
+      if (tabName === "timeclock") loadTimeclockAndAudits();
+    };
+    setTimeout(() => { if (currentStaff) loadTimeclockAndAudits(); }, 1500);    
     initCarbonOS();
   </script>
 </body>
