@@ -3,793 +3,920 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>REHG POS & C-Suite Governance Telemetry Hub</title>
+  <title>REHG Carbon™ | Carbon Terminal & Execution Engines</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg-dark: #070b14;
-      --bg-card: #0f172a;
-      --bg-input: #020617;
-      --border: #1e293b;
-      --gold: #d4af37;
-      --blue: #38bdf8;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --crimson: #ef4444;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg-dark);
-      color: var(--text-main);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
-    }
-    .topbar {
-      background: linear-gradient(90deg, #090d16, #111827);
-      border-bottom: 1.5px solid var(--gold);
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand-badge {
-      background: var(--gold);
-      color: #000;
-      font-weight: 900;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-    }
-    .nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-    .nav-btn {
-      background: var(--bg-card);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: 12.5px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .nav-btn:hover { border-color: var(--blue); color: #fff; }
-    .nav-btn.active {
-      background: var(--blue);
-      color: #020617;
-      border-color: var(--blue);
-    }
-    .nav-btn.owner-tab.active {
-      background: var(--gold);
-      color: #020617;
-      border-color: var(--gold);
-    }
-    .live-pill {
-      font-size: 11px;
-      font-weight: 800;
-      padding: 5px 10px;
-      border-radius: 20px;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--emerald);
-      border: 1px solid var(--emerald);
-    }
-    .container { max-width: 1440px; margin: 0 auto; padding: 18px; }
-    .view-panel { display: none; }
-    .view-panel.active { display: block; }
-    .pos-grid {
-      display: grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap: 18px;
-    }
-    @media (max-width: 960px) { .pos-grid { grid-template-columns: 1fr; } }
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .cat-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-    .cat-btn {
-      background: var(--bg-input);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .cat-btn.active { border-color: var(--gold); color: var(--gold); }
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-      gap: 12px;
-    }
-    .item-tile {
-      background: linear-gradient(180deg, #131c31, #0b1120);
-      border: 1px solid #26334d;
-      border-radius: 10px;
-      padding: 14px;
-      cursor: pointer;
-      text-align: left;
-      transition: transform 0.1s, border-color 0.15s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 105px;
-    }
-    .item-tile:hover { border-color: var(--blue); transform: translateY(-2px); }
-    .item-tile:active { transform: scale(0.98); }
-    .item-tile.vip { border-left: 4px solid var(--gold); }
-    .item-tile.kitchen { border-left: 4px solid var(--emerald); }
-    .item-tile.bar { border-left: 4px solid var(--blue); }
-    .item-name { font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 6px; }
-    .item-meta { display: flex; justify-content: space-between; align-items: center; }
-    .item-price { font-weight: 900; font-size: 15px; color: var(--emerald); }
-    .item-dept { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
-    .ticket-header { display: flex; gap: 8px; margin-bottom: 12px; }
-    input, select {
-      background: var(--bg-input);
-      border: 1px solid #334155;
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 7px;
-      font-size: 13px;
-    }
-    .ticket-lines {
-      min-height: 240px;
-      max-height: 360px;
-      overflow-y: auto;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 8px 0;
-      margin-bottom: 12px;
-    }
-    .ticket-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 6px;
-      border-bottom: 1px dashed #1e293b;
-      font-size: 13px;
-    }
-    .qty-controls { display: flex; align-items: center; gap: 6px; }
-    .qty-btn {
-      background: #1e293b;
-      color: #fff;
-      border: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 5px;
-      font-weight: 900;
-      cursor: pointer;
-    }
-    .totals-box { font-size: 13px; display: grid; gap: 6px; margin-bottom: 14px; }
-    .totals-row { display: flex; justify-content: space-between; color: var(--text-muted); }
-    .totals-row.grand {
-      font-size: 18px;
-      font-weight: 900;
-      color: #fff;
-      border-top: 1px solid var(--border);
-      padding-top: 8px;
-    }
-    .btn-primary {
-      width: 100%;
-      background: var(--emerald);
-      color: #020617;
-      border: none;
-      padding: 13px;
-      border-radius: 8px;
-      font-weight: 900;
-      font-size: 14px;
-      cursor: pointer;
-      letter-spacing: 0.4px;
-    }
-    .btn-primary:hover { filter: brightness(1.08); }
-    .btn-gold {
-      background: var(--gold);
-      color: #020617;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 900;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .kpi-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-    }
-    .kpi-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
-    .kpi-val { font-size: 24px; font-weight: 900; margin: 4px 0; }
-    .kpi-sub { font-size: 11px; color: var(--text-muted); }
-    .trapdoor-banner {
-      background: linear-gradient(90deg, #090d16, #1e1b4b);
-      border: 1px solid var(--blue);
-      border-left: 5px solid var(--gold);
-      padding: 14px 16px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    th {
-      text-align: left;
-      padding: 10px;
-      background: #090d16;
-      color: var(--gold);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    td { padding: 10px; border-bottom: 1px solid var(--border); }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
-      align-items: end;
-    }
-    .field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
-    .field input, .field select { width: 100%; }
+    body { background-color: #070b14; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .rehg-gold { color: #d4af37; }
+    .bg-rehg-gold { background-color: #d4af37; }
+    .border-rehg-gold { border-color: #d4af37; }
+    .carbon-emerald { color: #10b981; }
+    .bg-carbon-emerald { background-color: #10b981; }
+    .titanium-panel { background: linear-gradient(145deg, #0f172a 0%, #090e1a 100%); border: 1px solid #1e293b; }
+    .pin-btn:active { transform: scale(0.95); }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-  <!-- TOP EXECUTIVE NAVIGATION -->
-  <div class="topbar">
-    <div class="brand">
-      <span class="brand-badge">REHG OS</span>
+  <!-- TOP TELEMETRY & BRAND HEADER -->
+  <header class="border-b border-slate-800 bg-slate-950/90 px-5 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+      <!-- Titanium Hexagon "C" Emblem -->
+      <div class="w-10 h-10 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+          <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" stroke="#94a3b8" stroke-width="2" fill="#0f172a"/>
+          <path d="M15.5 8.5C14.5 7.5 13.3 7 12 7C9.2 7 7 9.2 7 12C7 14.8 9.2 17 12 17C13.3 17 14.5 16.5 15.5 15.5" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div>
-        <div style="font-weight:900;font-size:15px;">REHG Proprietary POS & Back-House Telemetry</div>
-        <div style="font-size:11px;color:var(--text-muted);">Venue: REHG Flagship Lounge • Target Guardrails: 14% Pour / 22% Food</div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold tracking-widest rehg-gold uppercase">REHG</span>
+          <span class="text-lg font-black tracking-tight text-white">CARBON<sup class="text-[10px] text-emerald-400 ml-0.5">TM</sup></span>
+          <span id="ui-mode-badge" class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">LOCKED TERMINAL</span>
+        </div>
+        <p class="text-[11px] text-slate-400" id="venue-subtitle">REHG Flagship Lounge • Guardrails: 14% Bar / 22% Food</p>
       </div>
     </div>
 
-    <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchView('pos', this)">⚡ FOH POS Register</button>
-      <button class="nav-btn" onclick="switchView('loader', this)">📦 Owner Product Loader</button>
-      <button class="nav-btn owner-tab" onclick="switchView('csuite', this)">🏛️ Live C-Suite Governance (Owner Trapdoor)</button>
-    </div>
+    <!-- ROLE NAVIGATION TABS (Dynamically Filtered by 7-Tier Role) -->
+    <nav id="main-nav" class="hidden flex-wrap items-center gap-2">
+      <button onclick="switchTab('terminal')" id="tab-terminal" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition">⚡ Carbon Terminal</button>
+      <button onclick="switchTab('timeclock')" id="tab-timeclock" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">⏱️ Timeclock & Tips</button>
+      <button onclick="switchTab('loader')" id="tab-loader" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">📦 Menu & 86 Editor</button>
+      <button onclick="switchTab('engines')" id="tab-engines" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🏛️ Carbon Execution Engines</button>
+    </nav>
 
-    <div id="connectionStatus" class="live-pill">🟢 LIVE SUPABASE SYNC</div>
+    <!-- STATUS & ACTIVE STAFF SESSION -->
+    <div class="flex items-center gap-3">
+      <button onclick="triggerPageManager()" id="page-mod-btn" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/40 hover:bg-amber-500/20 transition">
+        📟 Page MOD
+      </button>
+      <div id="active-staff-pill" class="hidden items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg">
+        <div class="text-right">
+          <div id="staff-name-display" class="text-xs font-bold text-white">--</div>
+          <div id="staff-role-display" class="text-[10px] font-semibold text-emerald-400 uppercase">--</div>
+        </div>
+        <button onclick="lockTerminal()" class="ml-2 px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-[11px] font-bold">Lock</button>
+      </div>
+      <div id="db-status-badge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-900 border border-slate-700 text-slate-400">
+        ⏳ CONNECTING...
+      </div>
+    </div>
+  </header>
+
+  <!-- DAILY SPECIAL & 86 TICKER BAR -->
+  <div class="bg-gradient-to-r from-slate-900 via-emerald-950/30 to-slate-900 border-b border-slate-800 px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+    <div class="flex items-center gap-2">
+      <span class="px-2 py-0.5 rounded bg-rehg-gold text-slate-950 font-black text-[10px] uppercase">Daily Special</span>
+      <span id="daily-special-banner" class="text-slate-200 font-medium">Loading venue special...</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-rose-400 font-bold uppercase text-[10px]">86'd Board:</span>
+      <span id="eighty-six-ticker" class="text-slate-400">All items in stock</span>
+    </div>
   </div>
 
-  <div class="container">
+  <!-- ===================================================================== -->
+  <!-- VIEW 0: 7-TIER STAFF PIN / BIOMETRIC / NFC LOCK SCREEN                -->
+  <!-- ===================================================================== -->
+  <main id="view-lockscreen" class="flex-1 flex items-center justify-center p-6">
+    <div class="titanium-panel rounded-2xl max-w-md w-full p-8 shadow-2xl">
+      <div class="text-center mb-6">
+        <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold tracking-wider uppercase mb-2">
+          Carbon Terminal™ Access Control
+        </div>
+        <h1 class="text-2xl font-black text-white">Enter 4-Digit Staff PIN</h1>
+        <p class="text-xs text-slate-400 mt-1">UI & permissions load automatically per profile tier</p>
+      </div>
 
-    <!-- VIEW 1: FRONT-OF-HOUSE POS REGISTER -->
-    <div id="view-pos" class="view-panel active">
-      <div class="pos-grid">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div style="font-weight:900;font-size:14px;color:var(--blue);">TAP ITEM TO RING</div>
-            <div class="cat-filters" style="margin-bottom:0;">
-              <button class="cat-btn active" onclick="filterMenu('ALL', this)">All Items</button>
-              <button class="cat-btn" onclick="filterMenu('BAR', this)">🥃 Bar Well / Cocktails</button>
-              <button class="cat-btn" onclick="filterMenu('VIP_BOTTLE', this)">🍾 VIP Bottles</button>
-              <button class="cat-btn" onclick="filterMenu('KITCHEN', this)">🔥 Kitchen</button>
-            </div>
+      <!-- PIN DOTS DISPLAY -->
+      <div class="flex justify-center gap-4 mb-6">
+        <div id="dot-1" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
+        <div id="dot-2" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
+        <div id="dot-3" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
+        <div id="dot-4" class="w-4 h-4 rounded-full border-2 border-slate-600 bg-slate-900 transition"></div>
+      </div>
+
+      <div id="pin-error" class="hidden text-center text-xs font-bold text-rose-400 mb-4">Invalid PIN. Try again.</div>
+
+      <!-- KEYPAD -->
+      <div class="grid grid-cols-3 gap-3 mb-5">
+        <button onclick="pressPin('1')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">1</button>
+        <button onclick="pressPin('2')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">2</button>
+        <button onclick="pressPin('3')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">3</button>
+        <button onclick="pressPin('4')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">4</button>
+        <button onclick="pressPin('5')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">5</button>
+        <button onclick="pressPin('6')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">6</button>
+        <button onclick="pressPin('7')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">7</button>
+        <button onclick="pressPin('8')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">8</button>
+        <button onclick="pressPin('9')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">9</button>
+        <button onclick="clearPin()" class="pin-btn py-4 rounded-xl bg-rose-950/50 hover:bg-rose-900/50 border border-rose-800/50 text-xs font-bold text-rose-300 uppercase">Clear</button>
+        <button onclick="pressPin('0')" class="pin-btn py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xl font-bold text-white">0</button>
+        <button onclick="simulateBiometricLogin()" class="pin-btn py-4 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-600/50 text-[11px] font-bold text-emerald-300 uppercase">🪪 NFC / Bio</button>
+      </div>
+
+      <!-- DEMO ROLE QUICK-LAUNCH REFERENCE -->
+      <div class="border-t border-slate-800 pt-4 text-[11px] text-slate-400">
+        <div class="font-bold text-slate-300 mb-1.5 uppercase tracking-wider">7-Tier Test PINs (Seeded):</div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <div><span class="text-amber-400 font-bold">9999</span> — Owner (Full + Owner Skin)</div>
+          <div><span class="text-amber-400 font-bold">8888</span> — Admin / GM</div>
+          <div><span class="text-sky-400 font-bold">7777</span> — Manager (Overrides)</div>
+          <div><span class="text-emerald-400 font-bold">1111</span> — Bartender (Speed Screen)</div>
+          <div><span class="text-purple-400 font-bold">2222</span> — Server (Table Floor)</div>
+          <div><span class="text-slate-300 font-bold">3333 / 4444</span> — Barback / Door</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1: CARBON TERMINAL (BARTENDER SPEED SCREEN & TABLE FLOOR UI)     -->
+  <!-- ===================================================================== -->
+  <section id="view-terminal" class="hidden flex-1 p-5 max-w-[1600px] w-full mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+      <!-- LEFT 7 COLS: SPEED SCREEN / FLOOR PLAN & MENU GRID -->
+      <div class="lg:col-span-7 titanium-panel rounded-2xl p-5 flex flex-col gap-4">
+        <!-- SERVICE MODE & GUEST COUNT CONTROL BAR -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div class="flex items-center gap-2">
+            <button onclick="setServiceMode('FAST_BAR')" id="mode-fastbar" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950">⚡ Bartender Speed Screen</button>
+            <button onclick="setServiceMode('TABLE_SERVICE')" id="mode-tables" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700">🪑 Floor / VIP Tables</button>
+            <button onclick="toggleOwnerSkin()" id="mode-ownerskin" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50">👑 Owner's Skin (At-Cost COGS)</button>
           </div>
-          <div id="posMenuGrid" class="menu-grid">
-            <div style="color:var(--text-muted);font-size:13px;">Loading live menu from rehg-pos-core...</div>
+
+          <!-- INLINE GUEST COUNT PILL (Always accessible on Speed Screen; Forced on Table Service) -->
+          <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
+            <span class="text-[11px] font-bold text-slate-400 uppercase mr-1">Guests (Model A):</span>
+            <button onclick="setGuestCount(1)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950" data-gc="1">1</button>
+            <button onclick="setGuestCount(2)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300" data-gc="2">2</button>
+            <button onclick="setGuestCount(4)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300" data-gc="4">4</button>
+            <button onclick="setGuestCount(6)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300" data-gc="6">6+</button>
+            <input type="number" id="custom-guest-input" min="1" max="50" value="1" onchange="setGuestCount(parseInt(this.value)||1)" class="w-12 ml-1 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-center text-white font-bold" />
           </div>
         </div>
 
-        <div class="card">
-          <div style="font-weight:900;font-size:14px;color:var(--gold);margin-bottom:10px;">ACTIVE REGISTER TICKET</div>
-          <div class="ticket-header">
-            <input type="text" id="tabNameInput" value="Bar Walk-In" placeholder="Tab / VIP Table Name" style="flex:1;font-weight:700;" />
-            <select id="orderTypeSelect">
-              <option value="BAR_WELL">Bar Well</option>
-              <option value="VIP_TABLE">VIP Table</option>
-              <option value="DINING">Dining</option>
-              <option value="TO_GO">To-Go</option>
-            </select>
+        <!-- TABLE SELECTOR BAR (Visible in Table Service Mode) -->
+        <div id="floor-plan-strip" class="hidden bg-slate-950/80 border border-slate-800 rounded-xl p-3">
+          <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Select Table / VIP Booth (Forces Guest Count):</div>
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            <button onclick="selectTable('VIP Booth 1')" class="py-2 px-2 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/20">VIP Booth 1</button>
+            <button onclick="selectTable('VIP Booth 2')" class="py-2 px-2 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/20">VIP Booth 2</button>
+            <button onclick="selectTable('Table 10')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 10</button>
+            <button onclick="selectTable('Table 11')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 11</button>
+            <button onclick="selectTable('Table 12')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 12</button>
+            <button onclick="selectTable('Patio 4')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Patio 4</button>
           </div>
+        </div>
 
-          <div id="ticketLines" class="ticket-lines">
-            <div style="color:var(--text-muted);text-align:center;padding:40px 10px;font-size:13px;">
-              Tap any product on the left to start a check.
+        <!-- RAPID CALL / MODIFIER STRIP (Speed Screen Priority) -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-[10px] font-bold text-slate-500 uppercase mr-1">Quick Mods:</span>
+          <button onclick="appendMod('Neat')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-300">Neat</button>
+          <button onclick="appendMod('Rocks')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-300">Rocks</button>
+          <button onclick="appendMod('Double')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-amber-300">Double</button>
+          <button onclick="appendMod('Red Bull')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-sky-300">+ Red Bull</button>
+          <button onclick="appendMod('Lime / Salt')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-emerald-300">Lime/Salt</button>
+        </div>
+
+        <!-- MENU BUTTONS GRID (Sorted by Speed Priority) -->
+        <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <!-- Populated dynamically from Supabase -->
+        </div>
+      </div>
+
+      <!-- RIGHT 5 COLS: ACTIVE TICKET, MODEL B PACKAGING TELEMETRY & OVERRIDES -->
+      <div class="lg:col-span-5 titanium-panel rounded-2xl p-5 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Active Carbon Ticket</span>
+              <input id="ticket-tab-name" type="text" value="Bar Walk-In" class="block bg-transparent text-lg font-black text-white focus:outline-none border-b border-transparent focus:border-sky-500" />
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] text-slate-400">Stated Guests: <span id="ticket-gc-stated" class="text-white font-bold">1</span></div>
+              <div class="text-[11px] text-emerald-400">Model B Est. Guests: <span id="ticket-gc-calc" class="font-bold">1</span></div>
             </div>
           </div>
 
-          <div class="totals-box">
-            <div class="totals-row"><span>Subtotal</span><span id="lblSubtotal">$0.00</span></div>
-            <div class="totals-row"><span>Tax (8.0%)</span><span id="lblTax">$0.00</span></div>
-            <div class="totals-row grand"><span>TOTAL DUE</span><span id="lblTotal" style="color:var(--emerald);">$0.00</span></div>
+          <!-- OWNER'S SKIN ACTIVE BANNER -->
+          <div id="owner-skin-banner" class="hidden mb-3 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between">
+            <span>👑 <strong>OWNER'S SKIN ACTIVE:</strong> Billed at wholesale COGS & emailed in EOD audit.</span>
           </div>
 
-          <button id="btnCheckout" class="btn-primary" onclick="processCheckout()">
-            💳 CLOSE CHECK & PUSH TO BACK-HOUSE
+          <!-- TICKET LINE ITEMS -->
+          <div id="ticket-items" class="space-y-2 max-h-64 overflow-y-auto pr-1 mb-4">
+            <div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>
+          </div>
+
+          <!-- MODEL B LIVE PACKAGING & DRY GOODS DEPLETION PREVIEW -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 mb-4">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">📦 Model B Live Packaging & Dry Goods Burn</span>
+              <span class="text-[10px] text-slate-500">Auto-Deducts on Close</span>
+            </div>
+            <div id="model-b-preview" class="text-[11px] text-slate-400">No consumables queued yet.</div>
+          </div>
+        </div>
+
+        <!-- TOTALS & ACTION CONTROLS -->
+        <div class="border-t border-slate-800 pt-4 space-y-3">
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>Subtotal</span>
+            <span id="ticket-subtotal">$0.00</span>
+          </div>
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>Tax (8.0%)</span>
+            <span id="ticket-tax">$0.00</span>
+          </div>
+          <div class="flex justify-between text-xl font-black text-white">
+            <span>TOTAL DUE</span>
+            <span id="ticket-total" class="text-emerald-400">$0.00</span>
+          </div>
+
+          <!-- PROTECTED MANAGER OVERRIDE ACTIONS -->
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <button onclick="requestManagerOverride('COMP_ITEM')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-amber-300">🔒 Comp / Disc</button>
+            <button onclick="requestManagerOverride('VOID_TICKET')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-rose-300">🔒 Void Check</button>
+            <button onclick="requestManagerOverride('TRANSFER_CHECK')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-sky-300">🔒 Transfer</button>
+          </div>
+
+          <button onclick="closeAndPushCheck()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition">
+            💳 CLOSE CHECK & PUSH TO EXECUTION ENGINES
           </button>
-          <div id="checkoutFeedback" style="margin-top:8px;font-size:12px;text-align:center;color:var(--emerald);font-weight:700;"></div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- VIEW 2: OWNER SIMPLE PRODUCT LOADER -->
-    <div id="view-loader" class="view-panel">
-      <div class="card" style="margin-bottom:16px;border-color:var(--gold);">
-        <div style="font-weight:900;font-size:15px;color:var(--gold);margin-bottom:4px;">
-          📦 OWNER QUICK-LOAD: ADD PRODUCT TO POS & GOVERNANCE ENGINE
-        </div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
-          Add any drink, VIP bottle, or kitchen plate once. It immediately appears on the FOH Register and automatically tracks theoretical depletion & margin offset roles in the back house.
-        </div>
-
-        <div class="form-grid">
-          <div class="field">
-            <label>Product / Button Name</label>
-            <input type="text" id="newProdName" placeholder="e.g., Casamigos Blanco (1.5oz)" />
-          </div>
-          <div class="field">
-            <label>Department</label>
-            <select id="newProdDept">
-              <option value="BAR">🥃 Bar Well / Cocktail</option>
-              <option value="VIP_BOTTLE">🍾 VIP Whole Bottle</option>
-              <option value="KITCHEN">🔥 Kitchen / Food</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Category Label</label>
-            <input type="text" id="newProdCat" value="Spirits" placeholder="Spirits, Beer, VIP, Entrees" />
-          </div>
-          <div class="field">
-            <label>POS Menu Price ($)</label>
-            <input type="number" step="0.50" id="newProdPrice" placeholder="14.00" />
-          </div>
-          <div class="field">
-            <label>Wholesale Pour/Plate Cost ($)</label>
-            <input type="number" step="0.01" id="newProdCost" placeholder="1.85" />
-          </div>
-          <div class="field">
-            <label>Depletion Spec (oz or 1 Btl)</label>
-            <input type="number" step="0.25" id="newProdOz" value="1.50" />
-          </div>
-          <div class="field">
-            <label>REHG Margin Role</label>
-            <select id="newProdRole">
-              <option value="OFFSET_WORKHORSE">🐎 Offset Workhorse (High Margin)</option>
-              <option value="CEILING_DRIVER">🚨 Ceiling Driver (Prestige Cap)</option>
-              <option value="STANDARD">Standard Item</option>
-            </select>
-          </div>
-          <div>
-            <button class="btn-gold" style="width:100%;" onclick="addNewProduct()">+ PUSH TO POS</button>
-          </div>
-        </div>
-        <div id="loaderFeedback" style="margin-top:8px;font-size:12px;color:var(--emerald);font-weight:700;"></div>
+  <!-- ===================================================================== -->
+  <!-- VIEW 2: TIMECLOCK & TIP DECLARATION (ALL ROLES INCLUDING BARBACK/DOOR)-->
+  <!-- ===================================================================== -->
+  <section id="view-timeclock" class="hidden flex-1 p-6 max-w-2xl w-full mx-auto">
+    <div class="titanium-panel rounded-2xl p-6 space-y-5">
+      <div class="border-b border-slate-800 pb-4">
+        <span class="text-xs font-bold uppercase text-emerald-400">Pillar 3 Labor Governance</span>
+        <h2 class="text-2xl font-black text-white">Shift Timeclock & Tip Declaration</h2>
+        <p class="text-xs text-slate-400 mt-1">Weekly hours & cash/CC tip declarations sync directly to REHG 5.0 Payroll.</p>
       </div>
 
-      <div class="card">
-        <div style="font-weight:900;font-size:14px;margin-bottom:10px;">ACTIVE POS CATALOG & AUTO-CALCULATED MARGIN SPECS</div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>Dept</th>
-                <th>Sell Price</th>
-                <th>Recipe Cost</th>
-                <th>Live Cost %</th>
-                <th>Depletion / Ring</th>
-                <th>Margin Strategy Role</th>
-              </tr>
-            </thead>
-            <tbody id="catalogTableBody"></tbody>
-          </table>
+      <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+        <div>
+          <div class="text-[11px] text-slate-400">Active Staff Member</div>
+          <div id="tc-staff-name" class="text-base font-bold text-white">--</div>
         </div>
+        <div>
+          <div class="text-[11px] text-slate-400">Weekly Hours Logged</div>
+          <div class="text-base font-bold text-emerald-400">24.5 hrs <span class="text-[10px] text-slate-500">(OT Alert at 32.0h)</span></div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <label class="block text-xs font-bold text-slate-300">Declared Cash Tips ($)</label>
+        <input id="declared-cash-tips" type="number" step="0.01" placeholder="0.00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="handleClockAction('CLOCK_IN')" class="py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm">🟢 PUNCH IN</button>
+        <button onclick="handleClockAction('CLOCK_OUT')" class="py-3.5 rounded-xl bg-rose-500 text-white font-black text-sm">🔴 PUNCH OUT & SUBMIT TIPS</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 3: ON-THE-FLY MENU, COGS & 86 EDITOR (MANAGER / ADMIN / OWNER)   -->
+  <!-- ===================================================================== -->
+  <section id="view-loader" class="hidden flex-1 p-6 max-w-5xl w-full mx-auto">
+    <div class="titanium-panel rounded-2xl p-6 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-xl font-black text-white">Live Menu, Owner's Skin COGS & 86'd Manager</h2>
+          <p class="text-xs text-slate-400">Changes broadcast immediately to all terminals & Carbon Feeder</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="new-special-input" type="text" placeholder="Update Daily Special banner..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white w-64" />
+          <button onclick="updateDailySpecial()" class="px-3 py-2 rounded-lg bg-rehg-gold text-slate-950 font-bold text-xs">Update Special</button>
+        </div>
+      </div>
+
+      <div id="admin-menu-list" class="space-y-2">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 4: REHG CARBON EXECUTION ENGINES (OWNER & ADMIN C-SUITE)         -->
+  <!-- ===================================================================== -->
+  <section id="view-engines" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="titanium-panel rounded-2xl p-5">
+        <div class="text-xs text-slate-400 font-bold uppercase">Gross Revenue</div>
+        <div id="kpi-revenue" class="text-2xl font-black text-white mt-1">$0.00</div>
+        <div class="text-[11px] text-emerald-400 mt-1">Live Supabase Sync</div>
+      </div>
+      <div class="titanium-panel rounded-2xl p-5">
+        <div class="text-xs text-slate-400 font-bold uppercase">Owner's Skin COGS</div>
+        <div id="kpi-ownerskin" class="text-2xl font-black text-amber-400 mt-1">$0.00</div>
+        <div class="text-[11px] text-slate-400 mt-1">Isolated from Retail Comps</div>
+      </div>
+      <div class="titanium-panel rounded-2xl p-5">
+        <div class="text-xs text-slate-400 font-bold uppercase">Guest Count (Model A / B)</div>
+        <div id="kpi-guests" class="text-2xl font-black text-sky-400 mt-1">0 / 0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Stated vs. Item-Driven</div>
+      </div>
+      <div class="titanium-panel rounded-2xl p-5">
+        <div class="text-xs text-slate-400 font-bold uppercase">Connected Engines</div>
+        <div class="text-sm font-black text-emerald-400 mt-2">● Carbon Feeder™</div>
+        <div class="text-sm font-black text-emerald-400">● DIY Kitchen Engine™</div>
       </div>
     </div>
 
-    <!-- VIEW 3: LIVE C-SUITE GOVERNANCE & OWNER TRAPDOOR TELEMETRY -->
-    <div id="view-csuite" class="view-panel">
-      <div class="trapdoor-banner">
-        <strong style="color:var(--gold);">🏛️ REHG C-SUITE OWNER TRAPDOOR (LIVE REGISTER TELEMETRY):</strong><br/>
-        <span id="trapdoorSummaryText">Listening to live POS register events... Every check closed on the front-end automatically updates theoretical ounce depletion, VIP bottle counts, and 14%/22% margin offset balance below.</span>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Live Gross POS Revenue</div>
-          <div id="kpiLiveRev" class="kpi-val" style="color:var(--emerald);">$0.00</div>
-          <div id="kpiTicketCount" class="kpi-sub">0 Closed Checks</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Live Theoretical Pour / COGS %</div>
-          <div id="kpiLiveCogsPct" class="kpi-val" style="color:var(--blue);">0.0%</div>
-          <div class="kpi-sub">REHG Guardrail: ≤ 14.0% Bar / 22.0% Food</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Bar Well Theoretical Depletion</div>
-          <div id="kpiBarOzRung" class="kpi-val" style="color:var(--gold);">0.0 oz</div>
-          <div class="kpi-sub">Auto-fed to Tab 1.2 Whole-House AvT</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">VIP Whole Bottles Rung</div>
-          <div id="kpiVipBtlsRung" class="kpi-val" style="color:var(--amber);">0 Btls</div>
-          <div class="kpi-sub">Auto-deducted in Tab 1.5 Bottle Recon</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="font-weight:900;font-size:14px;color:var(--blue);">LIVE PMIX & THEORETICAL DEPLETION STREAM (REAL-TIME FROM REGISTER)</div>
-          <button class="cat-btn" onclick="refreshTelemetry()">🔄 Force Sync</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Item Rung</th>
-                <th>Units Sold (#)</th>
-                <th>Gross POS Sales ($)</th>
-                <th>Theoretical COGS ($)</th>
-                <th>Actual Cost %</th>
-                <th>Back-House Depletion Logged</th>
-              </tr>
-            </thead>
-            <tbody id="livePmixTableBody"></tbody>
-          </table>
-        </div>
+    <div class="titanium-panel rounded-2xl p-6">
+      <h3 class="text-sm font-black uppercase tracking-wider text-amber-400 mb-3">Live Governance & Override Audit Feed</h3>
+      <div id="audit-feed-list" class="space-y-2 text-xs text-slate-300">
+        <div>No recent tickets or overrides logged yet.</div>
       </div>
     </div>
+  </section>
 
+  <!-- ===================================================================== -->
+  <!-- MODAL: MANAGER OVERRIDE (SWIPE / BIOMETRIC / MANAGER PIN + REASON)    -->
+  <!-- ===================================================================== -->
+  <div id="override-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="titanium-panel rounded-2xl max-w-md w-full p-6 space-y-4 border border-amber-500/40">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-black text-amber-400">🔒 Manager Override Required</h3>
+        <button onclick="closeOverrideModal()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-300">Action: <strong id="override-action-label" class="text-white">--</strong>. Select mandatory reason code & authenticate via NFC Swipe, Biometric, or Manager PIN.</p>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Mandatory Reason Code</label>
+        <select id="override-reason-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+          <option value="Spill / Remake">Spill / Bar Remake</option>
+          <option value="Guest Recovery">Guest Service Recovery</option>
+          <option value="VIP Host Comp">VIP Host / Promoter Allocation</option>
+          <option value="Server Ring Error">Server / Bartender Ring Error</option>
+          <option value="Check Transfer">Approved Check Transfer</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Manager PIN or Swipe/Biometric</label>
+        <div class="flex gap-2">
+          <input id="override-pin-input" type="password" maxlength="4" placeholder="Mgr PIN (e.g. 7777)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-bold" />
+          <button onclick="confirmManagerOverride(true)" class="px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold">🪪 Tap Swipe / Bio</button>
+        </div>
+      </div>
+
+      <button onclick="confirmManagerOverride(false)" class="w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs uppercase">Approve & Log Override</button>
+    </div>
   </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: FORCED GUEST COUNT (MODEL A TABLE SERVICE)                     -->
+  <!-- ===================================================================== -->
+  <div id="guest-count-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="titanium-panel rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-sky-500/40">
+      <div class="text-xs font-bold uppercase text-sky-400">Model A Table Governance</div>
+      <h3 class="text-xl font-black text-white">Guest Count for <span id="modal-table-name" class="text-amber-400">Table</span></h3>
+      <p class="text-xs text-slate-400">Mandatory headcount entry before loading table menu.</p>
+      <div class="grid grid-cols-4 gap-2">
+        <button onclick="confirmForcedGuestCount(1)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">1</button>
+        <button onclick="confirmForcedGuestCount(2)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">2</button>
+        <button onclick="confirmForcedGuestCount(3)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">3</button>
+        <button onclick="confirmForcedGuestCount(4)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">4</button>
+        <button onclick="confirmForcedGuestCount(5)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">5</button>
+        <button onclick="confirmForcedGuestCount(6)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">6</button>
+        <button onclick="confirmForcedGuestCount(8)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">8</button>
+        <button onclick="confirmForcedGuestCount(10)" class="py-3 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-slate-950 font-black text-base">10+</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // =========================================================================
-    // SUPABASE CONNECTION (REHG-POS-CORE)
+    // SUPABASE CONNECTION (LIVE ANON PUBLIC KEY)
     // =========================================================================
-    const SUPABASE_URL = "https://ruvyxmpokjdzkagbitac.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VqSVbTVwxowgrMeRH3xWLw_UgcJohXH";
+    const SUPABASE_URL = "https://ruvyxmpokjdzkagbltac.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1dnl4bXBva2pkemthZ2JsdGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NzMyNjQsImV4cCI6MjExMDQ0OTI2NH0.boILrcxFURxXBL6zvWgTaMZHFkO8QmfUMq2X1B1XugQ";
     const VENUE_ID = "11111111-1111-1111-1111-111111111111";
 
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let menuCatalog = [];
-    let activeCart = [];
-    let currentFilter = "ALL";
+    // GLOBAL STATE
+    let staffList = [];
+    let menuItems = [];
+    let currentUser = null;
+    let enteredPin = "";
+    let ticket = [];
+    let serviceMode = "FAST_BAR";
+    let guestCountStated = 1;
+    let isOwnerSkinActive = false;
+    let pendingOverrideAction = null;
 
-    // NAVIGATION SWITCHER
-    function switchView(viewName, btn) {
-      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById("view-" + viewName).classList.add("active");
-      btn.classList.add("active");
-      if (viewName === "csuite") refreshTelemetry();
+    // BOOTSTRAP
+    async function initCarbonOS() {
+      const badge = document.getElementById("db-status-badge");
+      try {
+        const [{ data: venue }, { data: staff }, { data: menu }] = await Promise.all([
+          db.from("venues").select("*").eq("id", VENUE_ID).single(),
+          db.from("staff_users").select("*").eq("venue_id", VENUE_ID),
+          db.from("menu_items").select("*").eq("venue_id", VENUE_ID).order("speed_screen_priority", { ascending: true })
+        ]);
+
+        if (venue) {
+          document.getElementById("daily-special-banner").textContent = venue.daily_special_text || "Welcome to REHG Carbon";
+          document.getElementById("new-special-input").value = venue.daily_special_text || "";
+        }
+        staffList = staff || [];
+        menuItems = menu || [];
+
+        badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/40 text-emerald-400";
+        badge.textContent = "🟢 LIVE SUPABASE SYNC";
+        update86Ticker();
+      } catch (err) {
+        badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 border border-rose-500/40 text-rose-400";
+        badge.textContent = "⚠️ DB SYNC ERROR";
+        console.error(err);
+      }
     }
 
-    // LOAD MENU FROM SUPABASE
-    async function loadMenuCatalog() {
-      const { data, error } = await db
-        .from("menu_items")
-        .select("*")
-        .eq("venue_id", VENUE_ID)
-        .eq("is_available", true)
-        .order("department", { ascending: true });
+    // =========================================================================
+    // 7-TIER AUTHENTICATION LOGIC
+    // =========================================================================
+    function pressPin(digit) {
+      if (enteredPin.length >= 4) return;
+      enteredPin += digit;
+      updatePinDots();
+      if (enteredPin.length === 4) {
+        setTimeout(() => verifyPin(enteredPin), 150);
+      }
+    }
 
-      if (error) {
-        console.error("Menu load error:", error);
-        document.getElementById("connectionStatus").innerText = "⚠️ DB CONNECTION ERROR";
+    function clearPin() {
+      enteredPin = "";
+      document.getElementById("pin-error").classList.add("hidden");
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (i <= enteredPin.length) {
+          dot.classList.add("bg-emerald-400", "border-emerald-400");
+          dot.classList.remove("bg-slate-900", "border-slate-600");
+        } else {
+          dot.classList.remove("bg-emerald-400", "border-emerald-400");
+          dot.classList.add("bg-slate-900", "border-slate-600");
+        }
+      }
+    }
+
+    function verifyPin(pin) {
+      const matched = staffList.find(s => s.pin_code === pin);
+      if (!matched) {
+        document.getElementById("pin-error").classList.remove("hidden");
+        enteredPin = "";
+        updatePinDots();
         return;
       }
-      menuCatalog = data || [];
-      renderPosMenu();
-      renderOwnerCatalogTable();
+      loginStaff(matched);
     }
 
-    function filterMenu(dept, btn) {
-      currentFilter = dept;
-      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderPosMenu();
+    function simulateBiometricLogin() {
+      const ownerOrMgr = staffList.find(s => s.biometric_enabled) || staffList[0];
+      if (ownerOrMgr) loginStaff(ownerOrMgr);
     }
 
-    function renderPosMenu() {
-      const grid = document.getElementById("posMenuGrid");
-      const filtered = currentFilter === "ALL"
-        ? menuCatalog
-        : menuCatalog.filter(m => m.department === currentFilter);
+    function loginStaff(user) {
+      currentUser = user;
+      enteredPin = "";
+      updatePinDots();
 
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div style="color:var(--text-muted);font-size:13px;">No items in this category yet. Use the Owner Product Loader tab to add items.</div>`;
+      document.getElementById("view-lockscreen").classList.add("hidden");
+      document.getElementById("main-nav").classList.remove("hidden");
+      document.getElementById("main-nav").classList.add("flex");
+      document.getElementById("active-staff-pill").classList.remove("hidden");
+      document.getElementById("active-staff-pill").classList.add("flex");
+      document.getElementById("page-mod-btn").classList.remove("hidden");
+
+      document.getElementById("staff-name-display").textContent = user.full_name;
+      document.getElementById("staff-role-display").textContent = `${user.role_tier} • ${user.custom_title || ''}`;
+      document.getElementById("tc-staff-name").textContent = `${user.full_name} (${user.role_tier})`;
+
+      const tier = user.role_tier;
+      const badge = document.getElementById("ui-mode-badge");
+
+      // Reset role tab visibility
+      ["tab-terminal", "tab-loader", "tab-engines", "mode-ownerskin"].forEach(id => document.getElementById(id).classList.add("hidden"));
+
+      // Enforce 7-Tier UI Lockout Rules
+      if (tier === "Barback" || tier === "General_Labor") {
+        // Locked strictly to Punch In / Punch Out
+        badge.textContent = "TIMECLOCK ONLY MODE";
+        switchTab("timeclock");
         return;
       }
 
-      grid.innerHTML = filtered.map(item => {
-        const cls = item.department === "VIP_BOTTLE" ? "vip" : (item.department === "KITCHEN" ? "kitchen" : "bar");
-        return `
-          <button class="item-tile ${cls}" onclick="addToCart('${item.id}')">
-            <div class="item-name">${item.name}</div>
-            <div class="item-meta">
-              <span class="item-dept">${item.category}</span>
-              <span class="item-price">$${Number(item.sell_price).toFixed(2)}</span>
-            </div>
-          </button>
-        `;
-      }).join("");
-    }
+      // Server and above get Terminal access
+      document.getElementById("tab-terminal").classList.remove("hidden");
+      if (tier === "Manager" || tier === "Admin" || tier === "Owner") {
+        document.getElementById("tab-loader").classList.remove("hidden");
+      }
+      if (tier === "Admin" || tier === "Owner") {
+        document.getElementById("tab-engines").classList.remove("hidden");
+      }
+      if (tier === "Owner") {
+        document.getElementById("mode-ownerskin").classList.remove("hidden");
+      }
 
-    // CART & REGISTER LOGIC
-    function addToCart(itemId) {
-      const product = menuCatalog.find(m => m.id === itemId);
-      if (!product) return;
-      const existing = activeCart.find(c => c.id === itemId);
-      if (existing) {
-        existing.qty += 1;
+      // Set default workspace by role
+      if (tier === "Server") {
+        setServiceMode("TABLE_SERVICE");
+        badge.textContent = "TABLE SERVICE UI";
       } else {
-        activeCart.push({ ...product, qty: 1 });
+        setServiceMode("FAST_BAR");
+        badge.textContent = tier === "Owner" ? "OWNER FULL-BOAT ACCESS" : "CARBON SPEED TERMINAL";
       }
-      if (product.department === "VIP_BOTTLE") {
-        document.getElementById("orderTypeSelect").value = "VIP_TABLE";
-      }
-      renderCart();
+
+      renderMenuGrid();
+      renderAdminMenuList();
+      switchTab("terminal");
     }
 
-    function updateCartQty(itemId, delta) {
-      const idx = activeCart.findIndex(c => c.id === itemId);
-      if (idx === -1) return;
-      activeCart[idx].qty += delta;
-      if (activeCart[idx].qty <= 0) activeCart.splice(idx, 1);
-      renderCart();
+    function lockTerminal() {
+      currentUser = null;
+      isOwnerSkinActive = false;
+      ticket = [];
+      renderTicket();
+      document.getElementById("main-nav").classList.add("hidden");
+      document.getElementById("active-staff-pill").classList.add("hidden");
+      document.getElementById("page-mod-btn").classList.add("hidden");
+      ["view-terminal", "view-timeclock", "view-loader", "view-engines"].forEach(id => document.getElementById(id).classList.add("hidden"));
+      document.getElementById("view-lockscreen").classList.remove("hidden");
+      document.getElementById("ui-mode-badge").textContent = "LOCKED TERMINAL";
     }
 
-    function renderCart() {
-      const container = document.getElementById("ticketLines");
-      if (activeCart.length === 0) {
-        container.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:40px 10px;font-size:13px;">Tap any product on the left to start a check.</div>`;
-        document.getElementById("lblSubtotal").innerText = "$0.00";
-        document.getElementById("lblTax").innerText = "$0.00";
-        document.getElementById("lblTotal").innerText = "$0.00";
+    function switchTab(tab) {
+      ["terminal", "timeclock", "loader", "engines"].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add("hidden");
+      });
+      document.getElementById(`view-${tab}`).classList.remove("hidden");
+      if (tab === "engines") loadExecutionEngines();
+    }
+
+    // =========================================================================
+    // SERVICE MODE, FORCED GUEST COUNT & OWNER'S SKIN
+    // =========================================================================
+    function setServiceMode(mode) {
+      serviceMode = mode;
+      const floorStrip = document.getElementById("floor-plan-strip");
+      const btnFast = document.getElementById("mode-fastbar");
+      const btnTable = document.getElementById("mode-tables");
+
+      if (mode === "TABLE_SERVICE") {
+        floorStrip.classList.remove("hidden");
+        btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 text-slate-950";
+        btnFast.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700";
+      } else {
+        floorStrip.classList.add("hidden");
+        btnFast.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950";
+        btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700";
+      }
+    }
+
+    function selectTable(tableName) {
+      document.getElementById("ticket-tab-name").value = tableName;
+      document.getElementById("modal-table-name").textContent = tableName;
+      document.getElementById("guest-count-modal").classList.remove("hidden");
+    }
+
+    function confirmForcedGuestCount(count) {
+      setGuestCount(count);
+      document.getElementById("guest-count-modal").classList.add("hidden");
+    }
+
+    function setGuestCount(count) {
+      guestCountStated = count;
+      document.getElementById("ticket-gc-stated").textContent = count;
+      document.getElementById("custom-guest-input").value = count;
+      document.querySelectorAll(".gc-pill").forEach(btn => {
+        const val = parseInt(btn.dataset.gc);
+        btn.className = val === count
+          ? "gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950"
+          : "gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300";
+      });
+    }
+
+    function toggleOwnerSkin() {
+      if (!currentUser || currentUser.role_tier !== "Owner") return;
+      isOwnerSkinActive = !isOwnerSkinActive;
+      const banner = document.getElementById("owner-skin-banner");
+      const btn = document.getElementById("mode-ownerskin");
+      if (isOwnerSkinActive) {
+        banner.classList.remove("hidden");
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20";
+        document.getElementById("ticket-tab-name").value = `OWNER SKIN: ${currentUser.full_name}`;
+      } else {
+        banner.classList.add("hidden");
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50";
+        document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      }
+      renderMenuGrid();
+      renderTicket();
+    }
+
+    // =========================================================================
+    // MENU RENDERING, SPEED RINGING & MODEL B PACKAGING ENGINE
+    // =========================================================================
+    function renderMenuGrid() {
+      const grid = document.getElementById("menu-grid");
+      grid.innerHTML = "";
+
+      menuItems.forEach(item => {
+        const activePrice = isOwnerSkinActive ? Number(item.wholesale_cogs || 0) : Number(item.price || 0);
+        const disabled = item.is_86d;
+        const card = document.createElement("button");
+        card.disabled = disabled;
+        card.onclick = () => addItemToTicket(item);
+        card.className = disabled
+          ? "p-4 rounded-xl bg-slate-950 border border-rose-900/50 opacity-50 text-left cursor-not-allowed"
+          : "p-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-emerald-400 text-left transition flex flex-col justify-between";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start gap-1">
+              <span class="text-[10px] font-bold uppercase text-slate-400">${item.category || 'Bar'}</span>
+              ${disabled ? '<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[10px] font-black">86\'D</span>' : ''}
+            </div>
+            <div class="text-sm font-black text-white mt-1">${item.name}</div>
+          </div>
+          <div class="mt-3 flex items-baseline justify-between">
+            <span class="text-base font-black ${isOwnerSkinActive ? 'text-amber-400' : 'text-emerald-400'}">$${activePrice.toFixed(2)}</span>
+            ${isOwnerSkinActive ? '<span class="text-[10px] text-amber-300 font-bold">AT COST</span>' : ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function addItemToTicket(item) {
+      const unitPrice = isOwnerSkinActive ? Number(item.wholesale_cogs || 0) : Number(item.price || 0);
+      ticket.push({
+        id: item.id,
+        name: item.name,
+        price: unitPrice,
+        cogs: Number(item.wholesale_cogs || 0),
+        mods: [],
+        packaging: Array.isArray(item.packaging_recipe) ? item.packaging_recipe : []
+      });
+      renderTicket();
+    }
+
+    function appendMod(modText) {
+      if (ticket.length === 0) return;
+      ticket[ticket.length - 1].mods.push(modText);
+      renderTicket();
+    }
+
+    function renderTicket() {
+      const container = document.getElementById("ticket-items");
+      if (ticket.length === 0) {
+        container.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>`;
+        document.getElementById("ticket-subtotal").textContent = "$0.00";
+        document.getElementById("ticket-tax").textContent = "$0.00";
+        document.getElementById("ticket-total").textContent = "$0.00";
+        document.getElementById("model-b-preview").textContent = "No consumables queued yet.";
+        document.getElementById("ticket-gc-calc").textContent = "0";
         return;
       }
 
       let subtotal = 0;
-      container.innerHTML = activeCart.map(line => {
-        const lineTotal = Number(line.sell_price) * line.qty;
-        subtotal += lineTotal;
-        return `
-          <div class="ticket-row">
-            <div>
-              <div style="font-weight:800;">${line.name}</div>
-              <div style="font-size:11px;color:var(--text-muted);">$${Number(line.sell_price).toFixed(2)} each</div>
-            </div>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="updateCartQty('${line.id}', -1)">-</button>
-              <span style="font-weight:900;min-width:18px;text-align:center;">${line.qty}</span>
-              <button class="qty-btn" onclick="updateCartQty('${line.id}', 1)">+</button>
-              <span style="font-weight:900;color:var(--emerald);min-width:62px;text-align:right;">$${lineTotal.toFixed(2)}</span>
-            </div>
+      const packagingTotals = {};
+      container.innerHTML = "";
+
+      ticket.forEach((line, idx) => {
+        const activePrice = isOwnerSkinActive ? line.cogs : line.price;
+        subtotal += activePrice;
+
+        // Aggregate Model B Packaging & Dry Goods
+        line.packaging.forEach(pkg => {
+          packagingTotals[pkg.item] = (packagingTotals[pkg.item] || 0) + Number(pkg.qty || 1);
+        });
+
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg text-xs";
+        row.innerHTML = `
+          <div>
+            <div class="font-bold text-white">${line.name}</div>
+            ${line.mods.length ? `<div class="text-[10px] text-sky-400">+ ${line.mods.join(', ')}</div>` : ''}
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-bold ${isOwnerSkinActive ? 'text-amber-400' : 'text-emerald-400'}">$${activePrice.toFixed(2)}</span>
+            <button onclick="removeTicketItem(${idx})" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>
           </div>
         `;
-      }).join("");
-
-      const tax = subtotal * 0.08;
-      const total = subtotal + tax;
-      document.getElementById("lblSubtotal").innerText = "$" + subtotal.toFixed(2);
-      document.getElementById("lblTax").innerText = "$" + tax.toFixed(2);
-      document.getElementById("lblTotal").innerText = "$" + total.toFixed(2);
-    }
-
-    // CHECKOUT -> WRITES LIVE TO ORDERS & ORDER_ITEMS
-    async function processCheckout() {
-      if (activeCart.length === 0) return;
-      const btn = document.getElementById("btnCheckout");
-      const fb = document.getElementById("checkoutFeedback");
-      btn.disabled = true;
-      btn.innerText = "⏳ SYNCING TO REHG CORE...";
-
-      const subtotal = activeCart.reduce((acc, l) => acc + (Number(l.sell_price) * l.qty), 0);
-      const tax = +(subtotal * 0.08).toFixed(2);
-      const total = +(subtotal + tax).toFixed(2);
-
-      // 1. Insert Order Header
-      const { data: orderData, error: orderErr } = await db
-        .from("orders")
-        .insert([{
-          venue_id: VENUE_ID,
-          table_or_tab: document.getElementById("tabNameInput").value || "Walk-In",
-          order_type: document.getElementById("orderTypeSelect").value,
-          status: "closed",
-          subtotal: subtotal,
-          tax: tax,
-          total: total,
-          closed_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
-
-      if (orderErr) {
-        fb.style.color = "var(--crimson)";
-        fb.innerText = "Error saving order: " + orderErr.message;
-        btn.disabled = false;
-        btn.innerText = "💳 CLOSE CHECK & PUSH TO BACK-HOUSE";
-        return;
-      }
-
-      // 2. Insert Line Items with Exact Theoretical Depletion
-      const linePayloads = activeCart.map(line => ({
-        order_id: orderData.id,
-        venue_id: VENUE_ID,
-        menu_item_id: line.id,
-        item_name: line.name,
-        quantity: line.qty,
-        unit_price: line.sell_price,
-        theoretical_depletion: Number(line.depletion_oz_or_units) * line.qty
-      }));
-
-      const { error: itemsErr } = await db.from("order_items").insert(linePayloads);
-
-      btn.disabled = false;
-      btn.innerText = "💳 CLOSE CHECK & PUSH TO BACK-HOUSE";
-
-      if (itemsErr) {
-        fb.style.color = "var(--crimson)";
-        fb.innerText = "Error saving items: " + itemsErr.message;
-        return;
-      }
-
-      activeCart = [];
-      renderCart();
-      fb.style.color = "var(--emerald)";
-      fb.innerText = `✓ Check Closed ($${total.toFixed(2)}) — Depletion & PMIX pushed live to C-Suite!`;
-      setTimeout(() => { fb.innerText = ""; }, 4000);
-    }
-
-    // OWNER PRODUCT LOADER
-    async function addNewProduct() {
-      const name = document.getElementById("newProdName").value.trim();
-      const dept = document.getElementById("newProdDept").value;
-      const cat  = document.getElementById("newProdCat").value.trim() || "General";
-      const price = parseFloat(document.getElementById("newProdPrice").value) || 0;
-      const cost  = parseFloat(document.getElementById("newProdCost").value) || 0;
-      const oz    = parseFloat(document.getElementById("newProdOz").value) || 1;
-      const role  = document.getElementById("newProdRole").value;
-      const fb    = document.getElementById("loaderFeedback");
-
-      if (!name || price <= 0) {
-        fb.style.color = "var(--crimson)";
-        fb.innerText = "Please enter a valid Product Name and Menu Price.";
-        return;
-      }
-
-      const { error } = await db.from("menu_items").insert([{
-        venue_id: VENUE_ID,
-        name: name,
-        department: dept,
-        category: cat,
-        sell_price: price,
-        recipe_cost: cost,
-        depletion_oz_or_units: oz,
-        margin_role: role
-      }]);
-
-      if (error) {
-        fb.style.color = "var(--crimson)";
-        fb.innerText = "Error: " + error.message;
-        return;
-      }
-
-      document.getElementById("newProdName").value = "";
-      document.getElementById("newProdPrice").value = "";
-      document.getElementById("newProdCost").value = "";
-      fb.style.color = "var(--emerald)";
-      fb.innerText = `✓ "${name}" is now live on the POS Register & Governance Engine!`;
-      await loadMenuCatalog();
-    }
-
-    function renderOwnerCatalogTable() {
-      const tbody = document.getElementById("catalogTableBody");
-      tbody.innerHTML = menuCatalog.map(m => {
-        const pct = m.sell_price > 0 ? ((m.recipe_cost / m.sell_price) * 100).toFixed(1) : "0.0";
-        const suffix = m.department === "BAR" ? " oz" : (m.department === "VIP_BOTTLE" ? " btl" : " unit");
-        return `
-          <tr>
-            <td style="font-weight:800;">${m.name}</td>
-            <td>${m.department}</td>
-            <td style="color:var(--emerald);font-weight:800;">$${Number(m.sell_price).toFixed(2)}</td>
-            <td>$${Number(m.recipe_cost).toFixed(2)}</td>
-            <td style="font-weight:900;color:${pct <= 18 ? 'var(--emerald)' : 'var(--amber)'};">${pct}%</td>
-            <td>${m.depletion_oz_or_units}${suffix}</td>
-            <td style="font-size:11px;color:var(--gold);font-weight:800;">${m.margin_role}</td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    // LIVE C-SUITE TELEMETRY & OWNER TRAPDOOR ENGINE
-    async function refreshTelemetry() {
-      const { data: orders } = await db.from("orders").select("*").eq("venue_id", VENUE_ID).eq("status", "closed");
-      const { data: items }  = await db.from("order_items").select("*").eq("venue_id", VENUE_ID);
-
-      const closedOrders = orders || [];
-      const soldItems = items || [];
-
-      const grossRev = closedOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
-      document.getElementById("kpiLiveRev").innerText = "$" + grossRev.toFixed(2);
-      document.getElementById("kpiTicketCount").innerText = `${closedOrders.length} Closed Checks`;
-
-      // Aggregate PMIX & Theoretical Depletion
-      const pmixMap = {};
-      let totalCogs = 0;
-      let totalBarOz = 0;
-      let totalVipBtls = 0;
-
-      soldItems.forEach(row => {
-        const catalogRef = menuCatalog.find(m => m.id === row.menu_item_id) || {};
-        const unitCost = Number(catalogRef.recipe_cost) || 0;
-        const dept = catalogRef.department || "BAR";
-        const lineRev = Number(row.unit_price) * row.quantity;
-        const lineCogs = unitCost * row.quantity;
-        const dep = Number(row.theoretical_depletion) || 0;
-
-        totalCogs += lineCogs;
-        if (dept === "BAR") totalBarOz += dep;
-        if (dept === "VIP_BOTTLE") totalVipBtls += dep;
-
-        if (!pmixMap[row.item_name]) {
-          pmixMap[row.item_name] = { name: row.item_name, dept, qty: 0, rev: 0, cogs: 0, dep: 0 };
-        }
-        pmixMap[row.item_name].qty += row.quantity;
-        pmixMap[row.item_name].rev += lineRev;
-        pmixMap[row.item_name].cogs += lineCogs;
-        pmixMap[row.item_name].dep += dep;
+        container.appendChild(row);
       });
 
-      const blendedPct = grossRev > 0 ? ((totalCogs / grossRev) * 100).toFixed(1) : "0.0";
-      document.getElementById("kpiLiveCogsPct").innerText = blendedPct + "%";
-      document.getElementById("kpiBarOzRung").innerText = totalBarOz.toFixed(1) + " oz";
-      document.getElementById("kpiVipBtlsRung").innerText = totalVipBtls + " Btls";
+      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
+      const total = subtotal + tax;
 
-      document.getElementById("trapdoorSummaryText").innerHTML =
-        `Live Blended Theoretical Cost: <strong style="color:var(--emerald);">${blendedPct}%</strong> on <strong>$${grossRev.toFixed(2)}</strong> net sales • ` +
-        `<strong>${totalBarOz.toFixed(1)} oz</strong> deducted from Bar Well theoretical balance • ` +
-        `<strong>${totalVipBtls} VIP bottle(s)</strong> logged for Tab 1.5 Whole-House Reconciliation.`;
+      document.getElementById("ticket-subtotal").textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById("ticket-tax").textContent = `$${tax.toFixed(2)}`;
+      document.getElementById("ticket-total").textContent = `$${total.toFixed(2)}`;
 
-      const tbody = document.getElementById("livePmixTableBody");
-      const rows = Object.values(pmixMap);
-      if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:18px;">No checks closed yet. Ring an order on the FOH POS Register tab to see live telemetry populate here!</td></tr>`;
+      // Model B Calculated Guest Count (based on primary vessels/cups consumed)
+      const calcGuests = Math.max(1, ticket.length);
+      document.getElementById("ticket-gc-calc").textContent = calcGuests;
+
+      const pkgEntries = Object.entries(packagingTotals).map(([k, v]) => `${v}x ${k}`);
+      document.getElementById("model-b-preview").textContent = pkgEntries.length
+        ? pkgEntries.join(" • ")
+        : "Standard glassware service";
+    }
+
+    function removeTicketItem(idx) {
+      ticket.splice(idx, 1);
+      renderTicket();
+    }
+
+    // =========================================================================
+    // MANAGER OVERRIDES & CLOSE CHECK TO SUPABASE
+    // =========================================================================
+    function requestManagerOverride(action) {
+      pendingOverrideAction = action;
+      document.getElementById("override-action-label").textContent = action;
+      document.getElementById("override-pin-input").value = "";
+      document.getElementById("override-modal").classList.remove("hidden");
+    }
+
+    function closeOverrideModal() {
+      document.getElementById("override-modal").classList.add("hidden");
+      pendingOverrideAction = null;
+    }
+
+    async function confirmManagerOverride(isBiometricSwipe) {
+      const reason = document.getElementById("override-reason-select").value;
+      const pinVal = document.getElementById("override-pin-input").value;
+
+      let approver = null;
+      if (isBiometricSwipe) {
+        approver = staffList.find(s => ["Owner", "Admin", "Manager"].includes(s.role_tier));
+      } else {
+        approver = staffList.find(s => s.pin_code === pinVal && ["Owner", "Admin", "Manager"].includes(s.role_tier));
+      }
+
+      if (!approver) {
+        alert("Invalid Manager/Admin/Owner credentials.");
         return;
       }
 
-      tbody.innerHTML = rows.map(r => {
-        const pct = r.rev > 0 ? ((r.cogs / r.rev) * 100).toFixed(1) : "0.0";
-        const depLabel = r.dept === "BAR" ? `${r.dep.toFixed(1)} oz poured` : (r.dept === "VIP_BOTTLE" ? `${r.dep} whole bottle(s)` : `${r.dep} portion(s)`);
-        return `
-          <tr>
-            <td style="font-weight:800;">${r.name}</td>
-            <td style="font-weight:800;color:var(--blue);">${r.qty}</td>
-            <td style="font-weight:800;color:var(--emerald);">$${r.rev.toFixed(2)}</td>
-            <td>$${r.cogs.toFixed(2)}</td>
-            <td style="font-weight:900;">${pct}%</td>
-            <td style="color:var(--gold);font-weight:700;">${depLabel}</td>
-          </tr>
-        `;
-      }).join("");
+      await db.from("governance_audits").insert({
+        venue_id: VENUE_ID,
+        audit_type: pendingOverrideAction,
+        severity: "WARNING",
+        summary: `${pendingOverrideAction} approved by ${approver.full_name} (${isBiometricSwipe ? 'NFC/Biometric' : 'PIN'}) — Reason: ${reason}`
+      });
+
+      if (pendingOverrideAction === "VOID_TICKET") {
+        ticket = [];
+        renderTicket();
+      }
+      alert(`✅ Override logged under ${approver.full_name}: ${reason}`);
+      closeOverrideModal();
     }
 
-    // SUBSCRIBE TO REAL-TIME POSTGRES CHANGES
-    db.channel("rehg-live-pos")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => refreshTelemetry())
-      .on("postgres_changes", { event: "*", schema: "public", table: "menu_items" }, () => loadMenuCatalog())
-      .subscribe();
+    async function closeAndPushCheck() {
+      if (ticket.length === 0) return;
 
-    // BOOT
-    loadMenuCatalog().then(() => refreshTelemetry());
+      const subtotal = ticket.reduce((acc, item) => acc + (isOwnerSkinActive ? item.cogs : item.price), 0);
+      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
+      const total = subtotal + tax;
+      const calcGuests = Math.max(1, ticket.length);
+
+      const { data: orderData, error } = await db.from("orders").insert({
+        venue_id: VENUE_ID,
+        staff_id: currentUser ? currentUser.id : null,
+        tab_name: document.getElementById("ticket-tab-name").value || "Bar Walk-In",
+        service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
+        guest_count_stated: guestCountStated,
+        guest_count_calculated: calcGuests,
+        is_owner_skin: isOwnerSkinActive,
+        subtotal: subtotal,
+        tax: tax,
+        total_amount: total,
+        status: "CLOSED"
+      }).select().single();
+
+      if (error) {
+        alert("Error pushing check: " + error.message);
+        return;
+      }
+
+      if (isOwnerSkinActive) {
+        await db.from("governance_audits").insert({
+          venue_id: VENUE_ID,
+          audit_type: "OWNER_SKIN_CONSUMPTION",
+          severity: "INFO",
+          summary: `Owner's Skin Ticket ($${total.toFixed(2)} at COGS) logged by ${currentUser.full_name} — Queued for EOD Owner Email.`
+        });
+      }
+
+      ticket = [];
+      renderTicket();
+      alert(`✅ Check Closed ($${total.toFixed(2)}) & Pushed to REHG Carbon Execution Engines!`);
+    }
+
+    // =========================================================================
+    // TIMECLOCK, 86 EDITOR & EXECUTION ENGINES TELEMETRY
+    // =========================================================================
+    async function handleClockAction(type) {
+      const tips = parseFloat(document.getElementById("declared-cash-tips").value || "0");
+      await db.from("governance_audits").insert({
+        venue_id: VENUE_ID,
+        audit_type: type,
+        severity: "INFO",
+        summary: `${currentUser.full_name} (${currentUser.role_tier}) ${type} — Declared Cash Tips: $${tips.toFixed(2)}`
+      });
+      alert(`✅ ${type} recorded for ${currentUser.full_name}. Cash tips declared: $${tips.toFixed(2)}`);
+    }
+
+    function triggerPageManager() {
+      alert(`📟 SMS / Push Alert dispatched to clocked-in Manager: "${currentUser.full_name} needs manager assistance at Carbon Terminal."`);
+    }
+
+    function update86Ticker() {
+      const out = menuItems.filter(m => m.is_86d).map(m => m.name);
+      document.getElementById("eighty-six-ticker").textContent = out.length ? out.join(" • ") : "All items in stock";
+    }
+
+    function renderAdminMenuList() {
+      const list = document.getElementById("admin-menu-list");
+      list.innerHTML = "";
+      menuItems.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-xs";
+        row.innerHTML = `
+          <div>
+            <span class="font-black text-white text-sm">${item.name}</span>
+            <span class="ml-3 text-emerald-400 font-bold">Menu: $${Number(item.price).toFixed(2)}</span>
+            <span class="ml-3 text-amber-400 font-bold">Owner COGS: $${Number(item.wholesale_cogs || 0).toFixed(2)}</span>
+          </div>
+          <button onclick="toggle86Status('${item.id}', ${!item.is_86d})" class="px-3 py-1.5 rounded-lg font-bold ${item.is_86d ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-300'}">
+            ${item.is_86d ? "86'D (Click to Restore)" : "In Stock (Click to 86)"}
+          </button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    async function toggle86Status(itemId, newState) {
+      await db.from("menu_items").update({ is_86d: newState }).eq("id", itemId);
+      const target = menuItems.find(m => m.id === itemId);
+      if (target) target.is_86d = newState;
+      update86Ticker();
+      renderAdminMenuList();
+      renderMenuGrid();
+    }
+
+    async function updateDailySpecial() {
+      const text = document.getElementById("new-special-input").value;
+      await db.from("venues").update({ daily_special_text: text }).eq("id", VENUE_ID);
+      document.getElementById("daily-special-banner").textContent = text;
+      alert("✅ Daily Special updated across all Carbon Terminals!");
+    }
+
+    async function loadExecutionEngines() {
+      const [{ data: orders }, { data: audits }] = await Promise.all([
+        db.from("orders").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }),
+        db.from("governance_audits").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(15)
+      ]);
+
+      const allOrders = orders || [];
+      const retailRev = allOrders.filter(o => !o.is_owner_skin).reduce((s, o) => s + Number(o.total_amount || 0), 0);
+      const ownerCogs = allOrders.filter(o => o.is_owner_skin).reduce((s, o) => s + Number(o.total_amount || 0), 0);
+      const statedG = allOrders.reduce((s, o) => s + Number(o.guest_count_stated || 0), 0);
+      const calcG = allOrders.reduce((s, o) => s + Number(o.guest_count_calculated || 0), 0);
+
+      document.getElementById("kpi-revenue").textContent = `$${retailRev.toFixed(2)}`;
+      document.getElementById("kpi-ownerskin").textContent = `$${ownerCogs.toFixed(2)}`;
+      document.getElementById("kpi-guests").textContent = `${statedG} / ${calcG}`;
+
+      const feed = document.getElementById("audit-feed-list");
+      feed.innerHTML = (audits || []).map(a => `
+        <div class="bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg flex justify-between">
+          <span><strong class="text-amber-400">[${a.audit_type}]</strong> ${a.summary}</span>
+          <span class="text-slate-500">${new Date(a.created_at).toLocaleTimeString()}</span>
+        </div>
+      `).join("") || "<div>No audit logs yet.</div>";
+    }
+
+    initCarbonOS();
   </script>
 </body>
 </html>
