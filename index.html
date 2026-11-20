@@ -163,7 +163,13 @@
             <button onclick="selectTable('Patio 4')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Patio 4</button>
           </div>
         </div>
-
+<!-- CATEGORY FILTER STRIP (ALL / BAR / FOOD / VIP) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="setMenuCategory('ALL')" id="cat-btn-ALL" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-500 text-slate-950 transition">🍹 All Items</button>
+          <button onclick="setMenuCategory('BAR')" id="cat-btn-BAR" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">🥃 Bar & Spirits</button>
+          <button onclick="setMenuCategory('KITCHEN')" id="cat-btn-KITCHEN" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🍔 Food / Kitchen</button>
+          <button onclick="setMenuCategory('VIP')" id="cat-btn-VIP" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition">🍾 VIP Bottle Service</button>
+        </div>
         <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
       </div>
 
@@ -1553,6 +1559,44 @@
       await loadExecutionEngines();
       alert("✅ Nightly EOD Z-Report locked and archived to Supabase!");
     }
+    // =========================================================================
+    // CATEGORY FILTER ENGINE (ALL / BAR / KITCHEN / VIP)
+    // =========================================================================
+    let activeMenuCategory = "ALL";
+
+    function setMenuCategory(cat) {
+      activeMenuCategory = cat;
+      ["ALL", "BAR", "KITCHEN", "VIP"].forEach(function(c) {
+        const btn = document.getElementById("cat-btn-" + c);
+        if (!btn) return;
+        if (c === cat) {
+          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-500 text-slate-950 transition";
+        } else if (c === "KITCHEN") {
+          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition";
+        } else if (c === "VIP") {
+          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition";
+        } else {
+          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+        }
+      });
+      renderMenuGrid();
+    }
+
+    const _baseRenderMenuGrid = renderMenuGrid;
+    renderMenuGrid = function() {
+      const fullMenuBackup = menuItems;
+      if (activeMenuCategory !== "ALL") {
+        menuItems = fullMenuBackup.filter(function(item) {
+          const cat = (item.category || "BAR").toUpperCase();
+          if (activeMenuCategory === "KITCHEN") return cat === "KITCHEN" || cat === "FOOD";
+          if (activeMenuCategory === "VIP") return cat.indexOf("VIP") !== -1;
+          if (activeMenuCategory === "BAR") return cat !== "KITCHEN" && cat !== "FOOD" && cat.indexOf("VIP") === -1;
+          return true;
+        });
+      }
+      _baseRenderMenuGrid();
+      menuItems = fullMenuBackup;
+    };
 
     initCarbonOS();
   </script>
