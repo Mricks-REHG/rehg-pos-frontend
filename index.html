@@ -15,12 +15,18 @@
     .bg-carbon-emerald { background-color: #10b981; }
     .titanium-panel { background: linear-gradient(145deg, #0f172a 0%, #090e1a 100%); border: 1px solid #1e293b; }
     .pin-btn:active { transform: scale(0.95); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070b14; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
+  <!-- GLOBAL LIVE TOAST ERROR / STATUS BANNER -->
+  <div id="carbon-toast-banner" class="hidden fixed top-4 right-4 z-[999] max-w-md px-4 py-3 rounded-xl shadow-2xl border text-xs font-bold transition-all"></div>
+
   <!-- TOP TELEMETRY & BRAND HEADER -->
-  <header class="border-b border-slate-800 bg-slate-950/90 px-5 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30">
+  <header class="border-b border-slate-800 bg-slate-950/95 px-5 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30 backdrop-blur">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
@@ -50,7 +56,7 @@
       <button onclick="switchTab('engines')" id="tab-engines" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🏛️ Execution Engines</button>
     </nav>
 
-    <!-- STATUS & ACTIVE STAFF SESSION -->
+    <!-- STATUS, IDLE TIMER & ACTIVE STAFF SESSION -->
     <div class="flex items-center gap-3">
       <button onclick="triggerPageManager()" id="page-mod-btn" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/40 hover:bg-amber-500/20 transition">
         📟 Page MOD
@@ -58,9 +64,12 @@
       <div id="active-staff-pill" class="hidden items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg">
         <div class="text-right">
           <div id="staff-name-display" class="text-xs font-bold text-white">--</div>
-          <div id="staff-role-display" class="text-[10px] font-semibold text-emerald-400 uppercase">--</div>
+          <div class="flex items-center justify-end gap-1.5">
+            <span id="staff-role-display" class="text-[10px] font-semibold text-emerald-400 uppercase">--</span>
+            <span id="idle-countdown-badge" class="text-[9px] font-mono text-slate-400">2:00</span>
+          </div>
         </div>
-        <button onclick="lockTerminal()" class="ml-2 px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-[11px] font-bold">Lock</button>
+        <button onclick="lockTerminal()" class="ml-2 px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-[11px] font-bold">Log Out</button>
       </div>
       <div id="db-status-badge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-900 border border-slate-700 text-slate-400">
         ⏳ CONNECTING...
@@ -133,17 +142,17 @@
   <section id="view-terminal" class="hidden flex-1 p-5 max-w-[1600px] w-full mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-      <!-- LEFT 7 COLS: MENU GRID & FLOOR TABLES -->
+      <!-- LEFT 7 COLS: DEPARTMENT TABS, INTERACTIVE FLOOR MAP & MENU GRID -->
       <div class="lg:col-span-7 titanium-panel rounded-2xl p-5 flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button onclick="setServiceMode('FAST_BAR')" id="mode-fastbar" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950">⚡ Bartender Speed Screen</button>
             <button onclick="setServiceMode('TABLE_SERVICE')" id="mode-tables" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700">🪑 Floor / VIP Tables</button>
             <button onclick="toggleOwnerSkin()" id="mode-ownerskin" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50">👑 Owner's Skin (At-Cost COGS)</button>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
-            <span class="text-[11px] font-bold text-slate-400 uppercase mr-1">Guests (Model A):</span>
+            <span class="text-[11px] font-bold text-slate-400 uppercase mr-1">Guests:</span>
             <button onclick="setGuestCount(1)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950" data-gc="1">1</button>
             <button onclick="setGuestCount(2)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300" data-gc="2">2</button>
             <button onclick="setGuestCount(4)" class="gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300" data-gc="4">4</button>
@@ -152,38 +161,48 @@
           </div>
         </div>
 
-        <div id="floor-plan-strip" class="hidden bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-          <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Select Table / VIP Booth (Forces Guest Count):</div>
-          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            <button onclick="selectTable('VIP Booth 1')" class="py-2 px-2 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/20">VIP Booth 1</button>
-            <button onclick="selectTable('VIP Booth 2')" class="py-2 px-2 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/20">VIP Booth 2</button>
-            <button onclick="selectTable('Table 10')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 10</button>
-            <button onclick="selectTable('Table 11')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 11</button>
-            <button onclick="selectTable('Table 12')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Table 12</button>
-            <button onclick="selectTable('Patio 4')" class="py-2 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold hover:border-sky-400">Patio 4</button>
+        <!-- MAIN TERMINAL DEPARTMENT & FLOOR MAP TABS -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <button onclick="setMenuCategory('ALL')" id="cat-btn-ALL" class="cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 transition">⚡ ALL</button>
+          <button onclick="setMenuCategory('BAR')" id="cat-btn-BAR" class="cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-sky-300 border border-sky-500/40 hover:border-sky-400 transition">🍹 BAR</button>
+          <button onclick="setMenuCategory('KITCHEN')" id="cat-btn-KITCHEN" class="cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🍔 FOOD</button>
+          <button onclick="setMenuCategory('VIP')" id="cat-btn-VIP" class="cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition">🍾 VIP</button>
+          <button onclick="setMenuCategory('FLOOR_MAP')" id="cat-btn-FLOOR_MAP" class="cat-filter-btn col-span-2 sm:col-span-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 transition">🪑 FLOOR & BAR MAP</button>
+        </div>
+
+        <!-- INTERACTIVE TABLES, BAR STOOLS & VIP BOOTHS MAP -->
+        <div id="floor-map-panel" class="hidden bg-slate-950/90 rounded-2xl p-4 border border-emerald-500/30 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400">🪑 Live Bar Stools, Dining Tables & VIP Booths</h4>
+              <p class="text-[11px] text-slate-400">Tap an open seat/table to start a check, or tap an <span class="text-amber-300 font-bold">Occupied</span> seat to recall your open tab</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold">
+              <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300">● Available</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/50 text-amber-300">● Open Check</span>
+            </div>
           </div>
+          <div id="floor-map-grid" class="space-y-4"></div>
         </div>
-<!-- CATEGORY FILTER STRIP (ALL / BAR / FOOD / VIP) -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="setMenuCategory('ALL')" id="cat-btn-ALL" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-500 text-slate-950 transition">🍹 All Items</button>
-          <button onclick="setMenuCategory('BAR')" id="cat-btn-BAR" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">🥃 Bar & Spirits</button>
-          <button onclick="setMenuCategory('KITCHEN')" id="cat-btn-KITCHEN" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🍔 Food / Kitchen</button>
-          <button onclick="setMenuCategory('VIP')" id="cat-btn-VIP" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition">🍾 VIP Bottle Service</button>
-        </div>
+
+        <!-- MENU SPEED GRID -->
         <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
       </div>
 
-      <!-- RIGHT 5 COLS: ACTIVE TICKET, OPEN TABS & AUTO-CLAIMED CC TIP -->
+      <!-- RIGHT 5 COLS: STEALTH ACTIVE TICKET, DINE-IN/TO-GO, SPLIT TENDER & AUTO-GRAT -->
       <div class="lg:col-span-5 titanium-panel rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Active Carbon Ticket</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Active Carbon Ticket</span>
+                <span id="ticket-mode-pill" class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-[9px] font-black uppercase">DINE-IN</span>
+              </div>
               <input id="ticket-tab-name" type="text" value="Bar Walk-In" oninput="document.getElementById('active-tab-name').value=this.value" class="block bg-transparent text-lg font-black text-white focus:outline-none border-b border-transparent focus:border-sky-500" />
             </div>
             <div class="text-right">
-              <div class="text-[11px] text-slate-400">Stated Guests: <span id="ticket-gc-stated" class="text-white font-bold">1</span></div>
-              <div class="text-[11px] text-emerald-400">Model B Est. Guests: <span id="ticket-gc-calc" class="font-bold">0</span></div>
+              <div class="text-[11px] text-slate-400">Party Headcount: <span id="ticket-gc-stated" class="text-white font-bold">1</span></div>
+              <div id="active-tab-status-tag" class="text-[10px] font-bold text-slate-500 uppercase">New Walk-In Check</div>
             </div>
           </div>
 
@@ -191,20 +210,13 @@
             👑 <strong>OWNER'S SKIN ACTIVE:</strong> Billed at wholesale COGS & logged in EOD audit.
           </div>
 
-          <div id="ticket-items" class="space-y-2 max-h-64 overflow-y-auto pr-1 mb-4">
+          <!-- STEALTH RULE: NO MODEL B OR PACKAGING BURN EXPOSED TO FRONTLINE STAFF -->
+          <div id="ticket-items" class="space-y-2 max-h-72 overflow-y-auto pr-1 mb-4">
             <div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>
-          </div>
-
-          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3 mb-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">📦 Model B Live Packaging & Dry Goods Burn</span>
-              <span class="text-[10px] text-slate-500">Auto-Deducts on Close</span>
-            </div>
-            <div id="model-b-preview" class="text-[11px] text-slate-400">No consumables queued yet.</div>
           </div>
         </div>
 
-        <div class="border-t border-slate-800 pt-4 space-y-3">
+        <div class="border-t border-slate-800 pt-4 space-y-2.5">
           <div class="flex justify-between text-xs text-slate-400">
             <span>Subtotal</span>
             <span id="ticket-subtotal">$0.00</span>
@@ -213,17 +225,29 @@
             <span>Tax (8.0%)</span>
             <span id="ticket-tax">$0.00</span>
           </div>
-          <div class="flex justify-between text-xl font-black text-white">
+          <div id="ticket-grat-line" class="hidden justify-between text-xs text-amber-300 font-bold">
+            <span id="ticket-grat-label">Auto-Gratuity (18%)</span>
+            <span id="ticket-grat">$0.00</span>
+          </div>
+          <div class="flex justify-between text-xl font-black text-white pt-1">
             <span>TOTAL DUE</span>
             <span id="ticket-total" class="text-emerald-400">$0.00</span>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 pt-1">
-            <button onclick="requestManagerOverride('COMP_ITEM')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-amber-300">🔒 Comp / Disc</button>
+          <!-- DINE-IN VS TO-GO CARRYOUT TOGGLE -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="setOrderMode('DINE_IN')" id="mode-btn-DINE_IN" class="py-2 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 border border-emerald-400 transition">🍽️ DINE-IN</button>
+            <button onclick="setOrderMode('TO_GO')" id="mode-btn-TO_GO" class="py-2 rounded-xl text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🛍️ TO-GO / CARRYOUT</button>
+          </div>
+
+          <!-- MANAGER OVERRIDE CONTROLS -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="requestManagerOverride('COMP_DISC')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-amber-300">🔒 Comp / Disc</button>
             <button onclick="requestManagerOverride('VOID_TICKET')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-rose-300">🔒 Void Check</button>
             <button onclick="requestManagerOverride('TRANSFER_CHECK')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-sky-300">🔒 Transfer</button>
           </div>
 
+          <!-- HOLD OPEN TAB & SCOPED OPEN TABS STRIP -->
           <div class="grid grid-cols-3 gap-2">
             <input id="active-tab-name" type="text" placeholder="Tab / VIP Table (e.g. Booth 1)" oninput="document.getElementById('ticket-tab-name').value=this.value||'Bar Walk-In'" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold" />
             <button onclick="holdOpenTab()" class="py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-black text-xs uppercase transition">📌 Hold Tab</button>
@@ -231,21 +255,40 @@
 
           <div id="open-tabs-strip" class="flex flex-wrap gap-1.5"></div>
 
-          <div class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
-            <span class="text-xs font-bold text-emerald-400">💳 CC Tip (Auto-Claimed to Shift):</span>
-            <input id="ticket-cc-tip" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-xs font-black text-white" />
-          </div>
-<!-- PAYMENT TENDER SELECTOR (CARD VS CASH) -->
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="setPaymentMethod('CARD')" id="pay-btn-CARD" class="py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition">💳 Credit / Debit Card</button>
-            <button onclick="setPaymentMethod('CASH')" id="pay-btn-CASH" class="py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">💵 Cash Tender</button>
+          <!-- VIP / LARGE PARTY AUTO-GRATUITY -->
+          <div class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5">
+            <span class="text-[11px] font-bold text-slate-300">🍾 Party / VIP Auto-Grat:</span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="setAutoGratPct(0)" id="grat-btn-0" class="px-2.5 py-1 rounded-lg text-[11px] font-black bg-emerald-500 text-slate-950">0%</button>
+              <button onclick="setAutoGratPct(18)" id="grat-btn-18" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-300 border border-slate-700">18%</button>
+              <button onclick="setAutoGratPct(20)" id="grat-btn-20" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-300 border border-slate-700">20%</button>
+            </div>
           </div>
 
+          <!-- PAYMENT TENDER SELECTOR (CARD / CASH / SPLIT TENDER) -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setPaymentMethod('CARD')" id="pay-btn-CARD" class="py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition">💳 Card</button>
+            <button onclick="setPaymentMethod('CASH')" id="pay-btn-CASH" class="py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">💵 Cash</button>
+            <button onclick="setPaymentMethod('SPLIT')" id="pay-btn-SPLIT" class="py-2 rounded-xl text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition">➗ Split Tender</button>
+          </div>
+
+          <div id="split-tender-row" class="hidden grid-cols-2 gap-2 bg-slate-950 border border-purple-500/40 rounded-xl p-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-emerald-300 uppercase">💵 Cash Portion ($)</label>
+              <input id="split-cash-amt" type="number" min="0" step="0.01" placeholder="0.00" oninput="syncSplitCardRemainder()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right text-xs font-black text-white" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-sky-300 uppercase">💳 Card Remainder ($)</label>
+              <input id="split-card-amt" type="number" min="0" step="0.01" placeholder="0.00" readonly class="w-full mt-1 bg-slate-900/60 border border-slate-800 rounded-lg px-2 py-1 text-right text-xs font-black text-sky-300" />
+            </div>
+          </div>
+
+          <!-- SINGLE CLEAN CC TIP INPUT (NO DUPLICATE ID) -->
           <div id="cc-tip-row" class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
             <span class="text-xs font-bold text-emerald-400">💳 CC Tip (Auto-Claimed to Shift):</span>
             <input id="ticket-cc-tip" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-xs font-black text-white" />
           </div>
-          
+
           <button onclick="closeAndPushCheck()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition">
             💳 CLOSE CHECK & PUSH TO EXECUTION ENGINES
           </button>
@@ -253,6 +296,7 @@
       </div>
     </div>
   </section>
+
   <!-- VIEW 2: TIMECLOCK & AUTO-CLAIMED TIP DECLARATION -->
   <section id="view-timeclock" class="hidden flex-1 p-6 max-w-4xl w-full mx-auto space-y-6">
     <div class="titanium-panel rounded-2xl p-6 space-y-5">
@@ -260,7 +304,7 @@
         <div>
           <span class="text-xs font-bold uppercase text-emerald-400">Pillar 3 Labor Governance</span>
           <h2 class="text-2xl font-black text-white">Shift Timeclock & Tip Declaration</h2>
-          <p class="text-xs text-slate-400 mt-1">CC tips claim automatically on check close; declare cash tips at clock-out</p>
+          <p class="text-xs text-slate-400 mt-1">CC tips & auto-gratuity claim automatically on check close; declare cash tips at clock-out</p>
         </div>
         <div id="active-shift-badge" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300">
           Status: Off Shift
@@ -278,11 +322,11 @@
           <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">💵 End-of-Shift Cash Tips & Auto-Claimed CC Tips</h3>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1 uppercase font-bold">Cash Tips</label>
+              <label class="block text-[10px] text-slate-400 mb-1 uppercase font-bold">Cash Tips ($)</label>
               <input id="declare-cash-tips" type="number" min="0" step="0.01" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold" />
             </div>
             <div>
-              <label class="block text-[10px] text-emerald-400 mb-1 uppercase font-bold">Auto-Claimed CC Tips</label>
+              <label class="block text-[10px] text-emerald-400 mb-1 uppercase font-bold">Auto-Claimed CC + Grat</label>
               <input id="declare-cc-tips" type="number" step="0.01" value="0.00" readonly class="w-full bg-slate-900/60 border border-emerald-500/40 rounded-lg px-3 py-2 text-emerald-300 font-black cursor-not-allowed" />
             </div>
           </div>
@@ -302,25 +346,88 @@
       </div>
     </div>
   </section>
-
-  <!-- VIEW 3: MENU EDITOR, INLINE PRICE/COGS & STAFF PROVISIONING -->
+  <!-- VIEW 3: MENU EDITOR, 4-TAB MASS IMPORTER & STAFF PROVISIONING -->
   <section id="view-loader" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
+
+    <!-- UNIVERSAL 4-TAB MASS IMPORTER (CSV / EXCEL / GOOGLE SHEETS TSV / HTML TABLE) -->
+    <div class="titanium-panel rounded-2xl p-6 space-y-4 border border-sky-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400">5-Minute Venue Onboarding Engine</span>
+          <h2 class="text-xl font-black text-white">📥 Universal 4-Tab Bulk Importer (Sheets / CSV / Excel / HTML)</h2>
+          <p class="text-xs text-slate-400">Paste directly from Google Sheets/Excel or upload `.csv` / `.tsv` / `.html` — preview rows safely before syncing to Supabase</p>
+        </div>
+        <button onclick="downloadBulkTemplate()" class="px-3.5 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/50 text-sky-300 text-xs font-black">
+          ⬇️ Download Starter CSV Template
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <button onclick="setImporterTab('MENU')" id="imp-tab-MENU" class="py-2 px-3 rounded-xl text-xs font-black bg-sky-500 text-slate-950">1. Food & Bar Menu + COGS</button>
+        <button onclick="setImporterTab('LIQUOR')" id="imp-tab-LIQUOR" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700">2. Liquor Backbar Bottles</button>
+        <button onclick="setImporterTab('DRY_GOODS')" id="imp-tab-DRY_GOODS" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700">3. Dry Goods & Packaging</button>
+        <button onclick="setImporterTab('MODS_STAFF')" id="imp-tab-MODS_STAFF" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700">4. Modifiers & HR Staff PINs</button>
+      </div>
+
+      <div id="imp-submode-wrap" class="hidden items-center gap-3 text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+        <span class="text-slate-400 font-bold">Tab 4 Target Table:</span>
+        <button onclick="setImporterSubmode('MODIFIERS')" id="imp-sub-MODIFIERS" class="px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black">🎛️ Modifier Groups</button>
+        <button onclick="setImporterSubmode('STAFF')" id="imp-sub-STAFF" class="px-3 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 font-bold">👥 Staff Roster & PINs</button>
+      </div>
+
+      <div id="imp-columns-hint" class="text-[11px] font-mono text-emerald-300 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+        Columns: name, department (BAR/FOOD), category (SPIRITS/COCKTAILS/KITCHEN/VIP SERVICE), price, wholesale_cogs, priority, liquor_bottle_name, pour_oz, modifier_group
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 space-y-2">
+          <textarea id="bulk-paste-input" rows="4" placeholder="Paste rows directly from Google Sheets / Excel, CSV text, or an HTML <table>..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white font-mono"></textarea>
+        </div>
+        <div class="flex flex-col justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1.5">Or Upload File (.csv / .tsv / .html):</label>
+            <input id="bulk-file-input" type="file" accept=".csv,.tsv,.txt,.html,.htm" onchange="handleBulkFileSelect(event)" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:font-bold" />
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-2">
+            <button onclick="previewBulkImport()" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold">🔍 Preview Rows</button>
+            <button onclick="commitBulkImport()" class="py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black">⚡ Sync to Supabase</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bulk-preview-box" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs max-h-56 overflow-auto"></div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- ADD MENU ITEM -->
+      <!-- ADD SINGLE MENU ITEM -->
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">➕ Add New Menu Item</h3>
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <input id="add-item-name" type="text" placeholder="Item Name (e.g. Casamigos Repo)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-name" type="text" placeholder="Item Name (e.g. Casamigos Repo / 10pc Wings)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
           <select id="add-item-cat" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-            <option value="SPIRITS">SPIRITS (Bar Modifiers)</option>
-            <option value="COCKTAILS">COCKTAILS (Bar Modifiers)</option>
-            <option value="BEER / WINE">BEER / WINE (Bar Modifiers)</option>
-            <option value="VIP SERVICE">VIP SERVICE</option>
-            <option value="KITCHEN">KITCHEN (Routes to BOH KDS)</option>
+            <option value="SPIRITS">SPIRITS (Bar Modifiers + 1.5oz Pour)</option>
+            <option value="COCKTAILS">COCKTAILS (Bar Modifiers + 1.5oz Pour)</option>
+            <option value="BEER / WINE">BEER / WINE</option>
+            <option value="VIP SERVICE">VIP SERVICE (Bottle Service Mods + Full Btl)</option>
+            <option value="KITCHEN">KITCHEN / FOOD (Kitchen Mods + BOH KDS)</option>
           </select>
-          <input id="add-item-priority" type="number" placeholder="Speed Order (1-99)" value="10" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-          <input id="add-item-price" type="number" step="0.01" placeholder="Retail Price" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-          <input id="add-item-cogs" type="number" step="0.01" placeholder="Owner COGS" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <select id="add-item-modgroup" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="AUTO">Auto-Match Modifier Group</option>
+            <option value="Spirits & Cocktails Prep">Spirits & Cocktails Prep</option>
+            <option value="Wings Sauce & Style">Wings Sauce & Style</option>
+            <option value="Burgers, Steaks & Lamb Chops">Burgers, Steaks & Lamb Chops</option>
+            <option value="Street Tacos & Quesadillas">Street Tacos & Quesadillas</option>
+            <option value="Shareables & Baskets">Shareables & Baskets</option>
+            <option value="VIP Bottle Service Presentation">VIP Bottle Service Presentation</option>
+            <option value="NONE">No Modifier Popup</option>
+          </select>
+          <input id="add-item-price" type="number" step="0.01" placeholder="Retail Price ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-cogs" type="number" step="0.01" placeholder="Wholesale COGS ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-bottle" type="text" placeholder="Linked Liquor Bottle Name (Optional)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="add-item-pour" type="number" step="0.25" placeholder="Pour oz (1.5)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+            <input id="add-item-priority" type="number" placeholder="Order (10)" value="10" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
         </div>
         <button onclick="createMenuItem()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">Save Item to Terminal</button>
       </div>
@@ -347,12 +454,12 @@
       </div>
     </div>
 
-    <!-- EDIT MENU ITEMS & 86 BOARD -->
+    <!-- EDIT MENU ITEMS & FRONTLINE 86 BOARD (ANTI-CANNIBALIZATION: NO DEEP BOTTLE VARIANCE EXPOSED HERE) -->
     <div class="titanium-panel rounded-2xl p-6 space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
-          <h2 class="text-xl font-black text-white">✏️ Edit Menu Prices, COGS & 86 Status</h2>
-          <p class="text-xs text-slate-400">Adjust retail price, wholesale COGS, or toggle 86 stock status live</p>
+          <h2 class="text-xl font-black text-white">✏️ Edit Menu Prices, COGS & Frontline 86 Status</h2>
+          <p class="text-xs text-slate-400">Adjust retail price, wholesale COGS, or toggle live 86 availability across all terminals</p>
         </div>
         <div class="flex items-center gap-2">
           <input id="new-special-input" type="text" placeholder="Update Daily Special banner..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white w-64" />
@@ -372,12 +479,15 @@
     </div>
   </section>
 
-  <!-- VIEW 4: LIVE KDS & SERVICE BAR PREP QUEUE -->
+  <!-- VIEW 4: LIVE KDS & SERVICE BAR PREP QUEUE (EXEMPT FROM 2-MIN AUTO-LOGOUT) -->
   <section id="view-kds" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
       <div>
-        <h2 class="text-xl font-black text-white">🔥 Live KDS & Service Bar Prep Queue</h2>
-        <p class="text-xs text-slate-400">Real-time BOH kitchen & service well routing with drink modifiers and bump timers</p>
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-black text-white">🔥 Live KDS & Service Bar Prep Queue</h2>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-[10px] font-black uppercase">Always-On BOH Screen (Auto-Logout Exempt)</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Real-time BOH kitchen & service well routing with high-contrast DINE-IN / CARRYOUT & modifier tags</p>
       </div>
       <button onclick="loadPrepTickets()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Queue</button>
     </div>
@@ -401,20 +511,26 @@
     </div>
   </section>
 
-  <!-- VIEW 5: CARBON EXECUTION ENGINES & NIGHTLY Z-REPORT -->
+  <!-- VIEW 5: CARBON EXECUTION ENGINES, MODULAR CARTRIDGE DOCK, ALERT CONTROLS & Z-REPORT -->
   <section id="view-engines" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
       <div>
-        <span class="text-xs font-bold uppercase text-amber-400">Pillar 4 Executive Telemetry</span>
-        <h2 class="text-2xl font-black text-white">🏛️ Carbon Execution Engines & Live P&L</h2>
-        <p class="text-xs text-slate-400 mt-1">Real-time gross sales, COGS guardrails (14% Bar / 22% Food), labor cost & nightly Z-Report</p>
+        <span class="text-xs font-bold uppercase text-amber-400">Pillar 4 Executive Telemetry & Extension Dock</span>
+        <h2 class="text-2xl font-black text-white">🏛️ Carbon Execution Engines & Modular Cartridge Dock</h2>
+        <p class="text-xs text-slate-400 mt-1">Top-level guardrails (14% Bar / 22% Food), Owner Alert Tripwires & Live-Synced REHG Carbon™ Extensions</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="loadExecutionEngines()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Telemetry</button>
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="cogs-rollup-period" onchange="loadExecutionEngines()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white">
+          <option value="DAILY">Rollup Window: Daily (24h)</option>
+          <option value="WEEKLY">Rollup Window: Weekly (7d)</option>
+          <option value="MONTHLY">Rollup Window: Monthly (30d)</option>
+        </select>
+        <button onclick="loadExecutionEngines()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh</button>
         <button onclick="runNightlyEodCloseout()" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase transition">🔒 Run Nightly EOD Z-Report</button>
       </div>
     </div>
 
+    <!-- TOP-LEVEL GUARDRAIL KPI CARDS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Closed Gross Sales</span>
@@ -422,9 +538,9 @@
         <div id="eng-checks-count" class="text-[11px] text-emerald-400 font-bold">0 closed checks • 0 open tabs</div>
       </div>
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
-        <span class="text-[11px] font-bold uppercase text-slate-400">Owner's Skin COGS & Pour %</span>
+        <span class="text-[11px] font-bold uppercase text-slate-400">Guardrail COGS (14% Bar / 22% Food)</span>
         <div id="eng-total-cogs" class="text-2xl font-black text-amber-400">$0.00</div>
-        <div id="eng-cogs-guardrail" class="text-[11px] text-slate-300 font-bold">0.0% COGS (Target ≤ 18%)</div>
+        <div id="eng-cogs-guardrail" class="text-[11px] text-slate-300 font-bold">0.0% Blended COGS (Target ≤ 18%)</div>
       </div>
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Live Shift Labor & Tips</span>
@@ -434,10 +550,78 @@
       <div class="titanium-panel rounded-2xl p-4 space-y-1">
         <span class="text-[11px] font-bold uppercase text-slate-400">Net Contribution Margin</span>
         <div id="eng-net-margin" class="text-2xl font-black text-emerald-400">$0.00</div>
-        <div id="eng-voids-total" class="text-[11px] text-rose-400 font-bold">Voids/Comps: $0.00</div>
+        <div id="eng-voids-total" class="text-[11px] text-rose-400 font-bold">Overrides: 0 ($0.00)</div>
       </div>
     </div>
-<!-- MASTER ALL OPEN CHECKS BOARD (MANAGER / ADMIN / OWNER) -->
+
+    <!-- MODULAR CARTRIDGE DOCK (PAYWALL-GATED BY venue_entitlements) -->
+    <div class="space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 class="text-sm font-black uppercase tracking-wider text-white">🧩 REHG Carbon™ Live-Synced Extension Cartridges</h3>
+          <p class="text-[11px] text-slate-400">Silent background telemetry is active (`CARBON_POS_LIVE`). Locked cartridges display real live counts and unlock instantly at $497 Standalone / $49.99 mo.</p>
+        </div>
+      </div>
+      <div id="cartridge-dock-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- OWNER / GM HOURLY SALES PULSE & COMP/VOID $X TRIPWIRE CONTROL PANEL -->
+    <div class="titanium-panel rounded-2xl p-5 space-y-4 border border-sky-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-black uppercase tracking-wider text-sky-400">📡 Automated Top-of-the-Hour Sales Pulse & Comp/Void Tripwires</h3>
+          <p class="text-[11px] text-slate-400">Dispatches `:00` hourly shift telemetry inside your operating window & fires instant critical alerts when single `$X` or shift `$Y` comps/voids breach</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="fireManualHourlyPulse()" class="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/50 text-sky-300 text-xs font-bold">⚡ Test Hourly Pulse Now</button>
+          <button onclick="saveVenueAlertSettings()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">💾 Save Alert Rules</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+          <label class="text-[10px] font-bold text-slate-400 uppercase">Hourly `:00` Pulse</label>
+          <label class="flex items-center gap-2 mt-2 cursor-pointer font-bold text-white">
+            <input id="alert-pulse-enabled" type="checkbox" class="w-4 h-4 accent-emerald-500" />
+            <span>Enabled</span>
+          </label>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Window Start</label>
+          <input id="alert-win-start" type="time" value="16:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white font-bold" />
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Window End</label>
+          <input id="alert-win-end" type="time" value="03:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white font-bold" />
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+          <label class="block text-[10px] font-bold text-amber-400 uppercase mb-1">Single Comp/Void `$X`</label>
+          <input id="alert-single-limit" type="number" step="1" value="50" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-amber-300 font-black" />
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+          <label class="block text-[10px] font-bold text-rose-400 uppercase mb-1">Shift Ceiling `$Y`</label>
+          <input id="alert-shift-ceiling" type="number" step="5" value="250" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-rose-300 font-black" />
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Alert Channel</label>
+          <select id="alert-channel" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white font-bold">
+            <option value="BOTH">SMS + Email</option>
+            <option value="SMS">SMS Only</option>
+            <option value="EMAIL">Email Only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+        <input id="alert-phones" type="text" placeholder="SMS Phone(s) e.g. +14045943765" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+        <input id="alert-emails" type="text" placeholder="Owner/GM Email(s) e.g. mricks@ricksexecutivehospitalitygroup.com" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+        <input id="alert-webhook" type="text" placeholder="Optional Webhook URL (SMS/Email Gateway)" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+      </div>
+
+      <div id="owner-alerts-feed" class="space-y-1.5 text-xs pt-1"></div>
+    </div>
+
+    <!-- MASTER ALL OPEN CHECKS BOARD (MANAGER / ADMIN / OWNER) -->
     <div class="titanium-panel rounded-2xl p-5 space-y-3 border border-amber-500/30">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
@@ -448,6 +632,7 @@
       </div>
       <div id="mgr-open-checks-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs"></div>
     </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-white">📊 Top-Performing Menu Items (Retail vs COGS)</h3>
@@ -460,33 +645,23 @@
     </div>
   </section>
 
-  <!-- MODAL: POST-TAP DRINK MODIFIERS (MULTI-SELECT) -->
+  <!-- MODAL: DYNAMIC POST-TAP BAR, KITCHEN & VIP MODIFIERS -->
   <div id="drink-mod-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="titanium-panel rounded-2xl max-w-md w-full p-5 space-y-4 border border-slate-700">
+    <div class="titanium-panel rounded-2xl max-w-lg w-full p-5 space-y-4 border border-slate-700">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <span class="text-[10px] font-bold uppercase text-amber-400">Select Drink Modifiers</span>
-          <h3 id="mod-modal-title" class="text-lg font-black text-white">Drink</h3>
+          <span id="mod-modal-group-label" class="text-[10px] font-bold uppercase text-amber-400">Select Modifiers</span>
+          <h3 id="mod-modal-title" class="text-lg font-black text-white">Item</h3>
         </div>
         <button onclick="closeDrinkModModal()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
       </div>
-      <div id="mod-active-tags" class="text-xs text-sky-400 font-bold min-h-[18px]">Standard Pour (Tap modifiers below to add)</div>
-      <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-        <button onclick="applyDrinkMod('Neat', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🥃 Neat</button>
-        <button onclick="applyDrinkMod('On the Rocks', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🧊 On the Rocks</button>
-        <button onclick="applyDrinkMod('Chilled / Up', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🍸 Chilled / Up</button>
-        <button onclick="applyDrinkMod('No Ice / Light Ice', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">💧 Light / No Ice</button>
-        <button onclick="applyDrinkMod('Tall Glass', 0)" class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white">🥛 Tall / Single</button>
-        <button onclick="applyDrinkMod('Lime & Salt', 0)" class="py-2.5 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300">🍋 Lime & Salt</button>
-        <button onclick="applyDrinkMod('Splash Cran / Pine', 1)" class="py-2.5 px-3 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-300">🍒 + Mixer (+$1)</button>
-        <button onclick="applyDrinkMod('+ Red Bull', 3)" class="py-2.5 px-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/50 text-sky-300">🐂 + Red Bull (+$3)</button>
-        <button onclick="applyDrinkMod('Double Pour', 4)" class="col-span-2 py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300">⚡ Make It a Double (+$4)</button>
-      </div>
+      <div id="mod-active-tags" class="text-xs text-sky-400 font-bold min-h-[18px]">Standard Prep (Tap options below to add)</div>
+      <div id="mod-dynamic-options" class="grid grid-cols-2 gap-2 text-xs font-bold max-h-72 overflow-y-auto pr-1"></div>
       <div class="flex gap-2">
-        <input id="mod-custom-note" type="text" placeholder="Custom prep note (e.g. Dirty, Extra Olive)..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+        <input id="mod-custom-note" type="text" placeholder="Custom KDS / Bar note (e.g. Allergy, Extra Crispy, Dirty)..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
         <button onclick="addCustomDrinkMod()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white">+ Note</button>
       </div>
-      <button onclick="closeDrinkModModal()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">✓ Done</button>
+      <button onclick="closeDrinkModModal()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">✓ Done & Lock Modifiers</button>
     </div>
   </div>
 
@@ -508,9 +683,13 @@
           <option value="Check Transfer">Approved Check Transfer</option>
         </select>
       </div>
+      <div id="override-comp-wrap" class="hidden">
+        <label class="block text-[11px] font-bold text-amber-400 uppercase mb-1">Comp / Discount Dollar Amount ($ — Leave blank for 100% Comp)</label>
+        <input id="override-comp-amount" type="number" min="0" step="0.01" placeholder="Full Ticket Comp" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+      </div>
       <div id="override-transfer-wrap" class="hidden">
-        <label class="block text-[11px] font-bold text-sky-400 uppercase mb-1">Transfer Tab To (Staff Name)</label>
-        <input id="override-transfer-input" type="text" placeholder="e.g. Jordan B." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        <label class="block text-[11px] font-bold text-sky-400 uppercase mb-1">Transfer Tab To Employee</label>
+        <select id="override-transfer-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"></select>
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Manager / Admin / Owner PIN</label>
@@ -526,7 +705,7 @@
   <!-- MODAL: FORCED GUEST COUNT -->
   <div id="guest-count-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="titanium-panel rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-sky-500/40">
-      <div class="text-xs font-bold uppercase text-sky-400">Model A Table Governance</div>
+      <div class="text-xs font-bold uppercase text-sky-400">Table Headcount Governance</div>
       <h3 class="text-xl font-black text-white">Guest Count for <span id="modal-table-name" class="text-amber-400">Table</span></h3>
       <p class="text-xs text-slate-400">Mandatory headcount entry before ringing table items.</p>
       <div class="grid grid-cols-4 gap-2">
@@ -546,6 +725,13 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1dnl4bXBva2pkemthZ2JsdGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NzMyNjQsImV4cCI6MjExMDQ0OTI2NH0.boILrcxFURxXBL6zvWgTaMZHFkO8QmfUMq2X1B1XugQ";
     const VENUE_ID = "11111111-1111-1111-1111-111111111111";
     const OVERRIDE_TIERS = ["Manager", "Admin", "Owner"];
+    const EXTENSION_STRIPE_LINKS = {
+      PORTAL: "https://buy.stripe.com/7sY3cneLDe1i6S94aT5Ne0n",
+      BAR: "https://buy.stripe.com/fZu14f0UN4qI0tL8r95Ne06",
+      KITCHEN: "https://buy.stripe.com/6oU3cn9rj9L2foFfTB5Ne05",
+      LOSS: "https://buy.stripe.com/6oU8wH46Z6yQ2BT6j15Ne08",
+      FEEDER: "https://buy.stripe.com/3cI6oz0UN1ewekB9vd5Ne07"
+    };
     const USD = "\x24";
 
     function fmt(val) {
@@ -554,38 +740,265 @@
 
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // DEFAULT INTERACTIVE FLOOR & BAR MAP LAYOUT
+    const DEFAULT_FLOOR_SECTIONS = [
+      {
+        zone: "🍸 Main Bar Stools",
+        accent: "sky",
+        seats: ["Bar Stool 1", "Bar Stool 2", "Bar Stool 3", "Bar Stool 4", "Bar Stool 5", "Bar Stool 6", "Bar Stool 7", "Bar Stool 8"]
+      },
+      {
+        zone: "🍽️ Main Dining & Lounge Tables",
+        accent: "emerald",
+        seats: ["Table 10", "Table 11", "Table 12", "Table 14", "Table 15", "Table 16", "Patio 1", "Patio 2"]
+      },
+      {
+        zone: "🍾 VIP Bottle Service Booths",
+        accent: "amber",
+        seats: ["VIP Booth 1", "VIP Booth 2", "VIP Booth 3", "VIP Booth 4", "Owner Mezzanine 1", "Stage VIP 6"]
+      }
+    ];
+
+    // BUILT-IN FALLBACK MODIFIER GROUPS (SYNCED WITH SUPABASE modifier_groups)
+    const FALLBACK_MODIFIER_GROUPS = [
+      {
+        group_name: "Spirits & Cocktails Prep",
+        department: "BAR",
+        options: [
+          { name: "Neat", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "On the Rocks", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Chilled / Up", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "No Ice / Light Ice", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Splash Cranberry", price: 0, cogs: 0.15, pour_mult: 1 },
+          { name: "Splash Pineapple", price: 0, cogs: 0.18, pour_mult: 1 },
+          { name: "Red Bull Mixer", price: 4.00, cogs: 1.65, pour_mult: 1 },
+          { name: "Make It a Double (2x Pour)", price: 6.00, cogs: 2.25, pour_mult: 2 }
+        ]
+      },
+      {
+        group_name: "Wings Sauce & Style",
+        department: "FOOD",
+        options: [
+          { name: "Lemon Pepper", price: 0, cogs: 0.22, pour_mult: 1 },
+          { name: "Hot Buffalo", price: 0, cogs: 0.25, pour_mult: 1 },
+          { name: "Honey Gold", price: 0, cogs: 0.28, pour_mult: 1 },
+          { name: "Smoky BBQ", price: 0, cogs: 0.24, pour_mult: 1 },
+          { name: "Extra Crispy", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Extra Wet", price: 1.00, cogs: 0.35, pour_mult: 1 },
+          { name: "All Flats", price: 2.50, cogs: 0.65, pour_mult: 1 },
+          { name: "Extra Side Sauce (2oz Cup+Lid)", price: 1.00, cogs: 0.31, pour_mult: 1, extra_ramekin: 1 }
+        ]
+      },
+      {
+        group_name: "Burgers, Steaks & Lamb Chops",
+        department: "FOOD",
+        options: [
+          { name: "Rare", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Medium Rare", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Medium", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Medium Well", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Well Done", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Add Aged Cheddar", price: 2.00, cogs: 0.48, pour_mult: 1 },
+          { name: "Add Thick-Cut Bacon", price: 2.50, cogs: 0.72, pour_mult: 1 },
+          { name: "Herb Garlic Butter Crown", price: 2.00, cogs: 0.40, pour_mult: 1 },
+          { name: "Sub Truffle Parmesan Fries", price: 4.00, cogs: 1.10, pour_mult: 1 }
+        ]
+      },
+      {
+        group_name: "Street Tacos & Quesadillas",
+        department: "FOOD",
+        options: [
+          { name: "Birria Beef", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Grilled Shrimp", price: 2.00, cogs: 0.85, pour_mult: 1 },
+          { name: "Adobo Chicken", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Carne Asada Steak", price: 2.00, cogs: 0.90, pour_mult: 1 },
+          { name: "No Cilantro / Onion", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Extra Consomme Dip (Cup+Lid)", price: 2.00, cogs: 0.55, pour_mult: 1, extra_ramekin: 1 }
+        ]
+      },
+      {
+        group_name: "Shareables & Baskets",
+        department: "FOOD",
+        options: [
+          { name: "Cajun Remoulade", price: 0, cogs: 0.25, pour_mult: 1 },
+          { name: "House Ranch", price: 0, cogs: 0.22, pour_mult: 1 },
+          { name: "Sweet Thai Chili", price: 0, cogs: 0.24, pour_mult: 1 },
+          { name: "Light Seasoning", price: 0, cogs: 0, pour_mult: 1 },
+          { name: "Extra Dipping Sauce (2oz Cup+Lid)", price: 1.00, cogs: 0.31, pour_mult: 1, extra_ramekin: 1 }
+        ]
+      },
+      {
+        group_name: "VIP Bottle Service Presentation",
+        department: "VIP",
+        options: [
+          { name: "Cranberry Carafe (Included)", price: 0, cogs: 0.65, pour_mult: 1 },
+          { name: "Pineapple Carafe (Included)", price: 0, cogs: 0.75, pour_mult: 1 },
+          { name: "Orange Juice Carafe (Included)", price: 0, cogs: 0.75, pour_mult: 1 },
+          { name: "Sprite / Club Soda Carafe", price: 0, cogs: 0.35, pour_mult: 1 },
+          { name: "4-Pack Red Bull", price: 16.00, cogs: 6.60, pour_mult: 1 },
+          { name: "VIP Sparkler Presentation", price: 0, cogs: 1.20, pour_mult: 1 }
+        ]
+      }
+    ];
+
     // UNIFIED GLOBAL STATE
     let staffList = [];
     let menuItems = [];
+    let modifierGroups = [];
+    let liquorInventory = [];
+    let dryGoodsInventory = [];
+    let venueEntitlements = {
+      portal_active: false,
+      bar_engine_active: false,
+      kitchen_engine_active: false,
+      loss_engine_active: false,
+      feeder_engine_active: false,
+      ingestion_source: "CARBON_POS_LIVE",
+      standalone_price: 497.00,
+      monthly_sync_price: 49.99
+    };
+    let venueAlertSettings = null;
+    let floorSections = DEFAULT_FLOOR_SECTIONS;
+
     let currentUser = null;
+    let currentActiveView = "lockscreen";
     let enteredPin = "";
     let ticket = [];
     let serviceMode = "FAST_BAR";
+    let activeMenuCategory = "ALL";
+    let activeOrderMode = "DINE_IN";
+    let activePaymentMethod = "CARD";
+    let activeAutoGratPct = 0;
+    let activeTableCode = "";
     let guestCountStated = 1;
     let isOwnerSkinActive = false;
+
     let pendingOverrideAction = null;
     let pendingModIdx = null;
+    let activeModalOptions = [];
+
     let openTabsList = [];
     let activeOpenTabId = null;
     let prepTicketsList = [];
     let activeShiftRecord = null;
     let latestEngineSnapshot = null;
 
+    // 2-MINUTE INACTIVITY AUTO-LOGOUT + TOP-OF-HOUR PULSE WATCHER
+    let idleSecondsRemaining = 120;
+    let lastHourlyPulseStamp = "";
+
+    let toastTimer = null;
+    function showCarbonToast(msg, type) {
+      const el = document.getElementById("carbon-toast-banner");
+      if (!el) return;
+      if (toastTimer) clearTimeout(toastTimer);
+      const isErr = type === "error";
+      const isWarn = type === "warn";
+      el.className = "fixed top-4 right-4 z-[999] max-w-md px-4 py-3 rounded-xl shadow-2xl border text-xs font-bold transition-all " +
+        (isErr
+          ? "bg-rose-950/95 border-rose-500 text-rose-200"
+          : isWarn
+          ? "bg-amber-950/95 border-amber-500 text-amber-200"
+          : "bg-emerald-950/95 border-emerald-500 text-emerald-200");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      toastTimer = setTimeout(function() { el.classList.add("hidden"); }, isErr ? 6500 : 3800);
+    }
+
+    function resetIdleTimer() {
+      idleSecondsRemaining = 120;
+      const badge = document.getElementById("idle-countdown-badge");
+      if (badge) {
+        badge.textContent = currentActiveView === "kds" ? "BOH LIVE" : "2:00";
+      }
+    }
+
+    ["click", "touchstart", "keydown", "mousemove"].forEach(function(evt) {
+      document.addEventListener(evt, function() {
+        if (currentUser) resetIdleTimer();
+      }, { passive: true });
+    });
+
+    setInterval(function() {
+      // 1) Smart 120s Inactivity Logout (KDS view-kds is strictly EXEMPT)
+      if (currentUser && currentActiveView !== "lockscreen") {
+        const badge = document.getElementById("idle-countdown-badge");
+        if (currentActiveView === "kds") {
+          if (badge) badge.textContent = "BOH LIVE";
+        } else {
+          idleSecondsRemaining = Math.max(0, idleSecondsRemaining - 1);
+          if (badge) {
+            const m = Math.floor(idleSecondsRemaining / 60);
+            const s = idleSecondsRemaining % 60;
+            badge.textContent = m + ":" + (s < 10 ? "0" + s : s);
+          }
+          if (idleSecondsRemaining === 0) {
+            lockTerminal();
+            showCarbonToast("🔒 Terminal auto-logged out after 2 minutes of inactivity.", "warn");
+          }
+        }
+      }
+
+      // 2) Top-of-the-Hour (:00) Automated Sales Pulse Watcher
+      const now = new Date();
+      if (now.getMinutes() === 0 && venueAlertSettings && venueAlertSettings.hourly_pulse_enabled) {
+        const hourKey = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDate() + "-" + now.getHours();
+        if (lastHourlyPulseStamp !== hourKey) {
+          lastHourlyPulseStamp = hourKey;
+          db.rpc("cmd_hourly_pulse_dispatch", { p_venue_id: VENUE_ID, p_force: false }).then(function(res) {
+            if (res && res.data && res.data.in_operating_window) {
+              dispatchWebhookIfConfigured(res.data);
+            }
+          });
+        }
+      }
+    }, 1000);
+
+    async function dispatchWebhookIfConfigured(payloadObj) {
+      if (!venueAlertSettings || !venueAlertSettings.webhook_url) return;
+      try {
+        await fetch(venueAlertSettings.webhook_url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payloadObj)
+        });
+      } catch (e) {
+        console.warn("Webhook dispatch skipped:", e);
+      }
+    }
+
     async function initCarbonOS() {
       const badge = document.getElementById("db-status-badge");
       try {
-        const [venueRes, staffRes, menuRes] = await Promise.all([
-          db.from("venues").select("*").eq("id", VENUE_ID).single(),
+        const [venueRes, staffRes, menuRes, modRes, liqRes, dryRes, entRes, alertRes] = await Promise.all([
+          db.from("venues").select("*").eq("id", VENUE_ID).maybeSingle(),
           db.from("staff_users").select("*").eq("venue_id", VENUE_ID),
-          db.from("menu_items").select("*").eq("venue_id", VENUE_ID).order("speed_screen_priority", { ascending: true })
+          db.from("menu_items").select("*").eq("venue_id", VENUE_ID).order("speed_screen_priority", { ascending: true }),
+          db.from("modifier_groups").select("*").eq("venue_id", VENUE_ID).order("sort_order", { ascending: true }),
+          db.from("liquor_inventory").select("*").eq("venue_id", VENUE_ID),
+          db.from("dry_goods_inventory").select("*").eq("venue_id", VENUE_ID),
+          db.from("venue_entitlements").select("*").eq("venue_id", VENUE_ID).maybeSingle(),
+          db.from("venue_alert_settings").select("*").eq("venue_id", VENUE_ID).maybeSingle()
         ]);
 
         if (venueRes.data) {
           document.getElementById("daily-special-banner").textContent = venueRes.data.daily_special_text || "Welcome to REHG Carbon";
           document.getElementById("new-special-input").value = venueRes.data.daily_special_text || "";
+          if (Array.isArray(venueRes.data.floor_layout) && venueRes.data.floor_layout.length) {
+            floorSections = venueRes.data.floor_layout;
+          }
         }
+
         staffList = staffRes.data || [];
         menuItems = menuRes.data || [];
+        modifierGroups = (modRes.data && modRes.data.length) ? modRes.data : FALLBACK_MODIFIER_GROUPS;
+        liquorInventory = liqRes.data || [];
+        dryGoodsInventory = dryRes.data || [];
+        if (entRes.data) venueEntitlements = Object.assign(venueEntitlements, entRes.data);
+        if (alertRes.data) {
+          venueAlertSettings = alertRes.data;
+          populateAlertSettingsForm();
+        }
 
         badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/40 text-emerald-400";
         badge.textContent = "🟢 LIVE SUPABASE SYNC";
@@ -593,22 +1006,34 @@
         renderMenuGrid();
         renderAdminMenuList();
         renderAdminStaffList();
-        loadOpenTabs();
-        loadPrepTickets();
+        await loadOpenTabs();
+        await loadPrepTickets();
       } catch (err) {
         badge.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 border border-rose-500/40 text-rose-400";
         badge.textContent = "⚠️ DB SYNC ERROR";
-        console.error(err);
+        showCarbonToast("Supabase connection warning: " + (err.message || err), "error");
       }
     }
 
-    // 7-TIER AUTHENTICATION
+    // 7-TIER AUTHENTICATION & ROLE VISIBILITY
+    function isCurrentUserMgmt() {
+      if (!currentUser) return false;
+      const role = currentUser.role_tier || currentUser.role || "";
+      return OVERRIDE_TIERS.includes(role);
+    }
+
+    function getStaffNameById(staffId) {
+      if (!staffId) return "Unassigned";
+      const found = staffList.find(function(s) { return s.id === staffId; });
+      return found ? found.full_name : "Staff";
+    }
+
     function pressPin(digit) {
       if (enteredPin.length >= 4) return;
       enteredPin += digit;
       updatePinDots();
       if (enteredPin.length === 4) {
-        setTimeout(function() { verifyPin(enteredPin); }, 150);
+        setTimeout(function() { verifyPin(enteredPin); }, 120);
       }
     }
 
@@ -632,7 +1057,7 @@
     }
 
     function verifyPin(pin) {
-      const matched = staffList.find(function(s) { return s.pin_code === pin; });
+      const matched = staffList.find(function(s) { return String(s.pin_code) === String(pin) && s.is_active !== false; });
       if (!matched) {
         document.getElementById("pin-error").classList.remove("hidden");
         enteredPin = "";
@@ -651,6 +1076,7 @@
       currentUser = user;
       enteredPin = "";
       updatePinDots();
+      resetIdleTimer();
 
       document.getElementById("view-lockscreen").classList.add("hidden");
       const nav = document.getElementById("main-nav");
@@ -682,6 +1108,7 @@
       document.getElementById("tab-terminal").classList.remove("hidden");
       document.getElementById("tab-kds").classList.remove("hidden");
 
+      // Top-Nav Admin Buttons Guaranteed Visible for Manager, Admin & Owner
       if (OVERRIDE_TIERS.includes(tier)) {
         document.getElementById("tab-loader").classList.remove("hidden");
         document.getElementById("tab-engines").classList.remove("hidden");
@@ -698,6 +1125,7 @@
         badge.textContent = tier === "Owner" ? "OWNER FULL-BOAT ACCESS" : "CARBON SPEED TERMINAL";
       }
 
+      await loadOpenTabs();
       renderMenuGrid();
       renderAdminMenuList();
       renderAdminStaffList();
@@ -707,13 +1135,24 @@
 
     function lockTerminal() {
       currentUser = null;
+      currentActiveView = "lockscreen";
       isOwnerSkinActive = false;
       activeOpenTabId = null;
+      activeTableCode = "";
       ticket = [];
+      setAutoGratPct(0);
+      setOrderMode("DINE_IN");
+      setPaymentMethod("CARD");
       renderTicket();
-      document.getElementById("main-nav").classList.add("hidden");
-      document.getElementById("active-staff-pill").classList.add("hidden");
+
+      const nav = document.getElementById("main-nav");
+      nav.classList.add("hidden");
+      nav.classList.remove("flex");
+      const pill = document.getElementById("active-staff-pill");
+      pill.classList.add("hidden");
+      pill.classList.remove("flex");
       document.getElementById("page-mod-btn").classList.add("hidden");
+
       ["terminal", "timeclock", "kds", "loader", "engines"].forEach(function(v) {
         const sec = document.getElementById("view-" + v);
         if (sec) sec.classList.add("hidden");
@@ -723,6 +1162,8 @@
     }
 
     function switchTab(tabName) {
+      currentActiveView = tabName;
+      resetIdleTimer();
       ["terminal", "timeclock", "kds", "loader", "engines"].forEach(function(v) {
         const sec = document.getElementById("view-" + v);
         if (sec) sec.classList.toggle("hidden", v !== tabName);
@@ -740,45 +1181,226 @@
       if (tabName === "engines") loadExecutionEngines();
     }
 
-    // SERVICE MODE, GUEST COUNT & OWNER'S SKIN
+    // SERVICE MODE, DEPARTMENT / FLOOR TABS & INTERACTIVE MAP
     function setServiceMode(mode) {
       serviceMode = mode;
-      const floorStrip = document.getElementById("floor-plan-strip");
       const btnFast = document.getElementById("mode-fastbar");
       const btnTable = document.getElementById("mode-tables");
       if (mode === "TABLE_SERVICE") {
-        floorStrip.classList.remove("hidden");
         btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 text-slate-950";
         btnFast.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700";
+        setMenuCategory("FLOOR_MAP");
       } else {
-        floorStrip.classList.add("hidden");
         btnFast.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950";
         btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700";
+        if (activeMenuCategory === "FLOOR_MAP") setMenuCategory("ALL");
       }
     }
 
-    function selectTable(tableName) {
-      document.getElementById("ticket-tab-name").value = tableName;
-      document.getElementById("active-tab-name").value = tableName;
-      document.getElementById("modal-table-name").textContent = tableName;
+    function setMenuCategory(cat) {
+      activeMenuCategory = cat;
+      const styles = {
+        ALL: "cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition",
+        BAR: "cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-sky-300 border border-sky-500/40 hover:border-sky-400 transition",
+        KITCHEN: "cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition",
+        VIP: "cat-filter-btn py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition",
+        FLOOR_MAP: "cat-filter-btn col-span-2 sm:col-span-1 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 transition"
+      };
+
+      Object.keys(styles).forEach(function(k) {
+        const btn = document.getElementById("cat-btn-" + k);
+        if (!btn) return;
+        if (k === cat) {
+          btn.className = (k === "FLOOR_MAP" ? "cat-filter-btn col-span-2 sm:col-span-1 " : "cat-filter-btn ") +
+            "py-2.5 px-3 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 transition";
+        } else {
+          btn.className = styles[k];
+        }
+      });
+
+      const floorPanel = document.getElementById("floor-map-panel");
+      const menuGrid = document.getElementById("menu-grid");
+      if (cat === "FLOOR_MAP") {
+        floorPanel.classList.remove("hidden");
+        menuGrid.classList.add("hidden");
+        renderFloorMap();
+      } else {
+        floorPanel.classList.add("hidden");
+        menuGrid.classList.remove("hidden");
+        renderMenuGrid();
+      }
+    }
+
+    function renderFloorMap() {
+      const container = document.getElementById("floor-map-grid");
+      if (!container) return;
+
+      container.innerHTML = floorSections.map(function(sec) {
+        const seatButtons = (sec.seats || []).map(function(seatName) {
+          const matchingTab = openTabsList.find(function(t) {
+            return (t.tab_name || "").toLowerCase() === seatName.toLowerCase() ||
+                   (t.table_code || "").toLowerCase() === seatName.toLowerCase();
+          });
+
+          if (matchingTab) {
+            const canAccess = isCurrentUserMgmt() || (currentUser && matchingTab.staff_id === currentUser.id);
+            const amt = Number(matchingTab.total_retail || matchingTab.total_amount || matchingTab.subtotal || 0);
+            const ownerTag = getStaffNameById(matchingTab.staff_id);
+            return '<button onclick="handleFloorSeatTap(\'' + seatName.replace(/'/g, "\\'") + '\')" class="p-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400 text-left transition">' +
+              '<div class="flex items-center justify-between text-[10px] font-black text-amber-300 uppercase"><span>● OPEN</span><span>' + (canAccess ? fmt(amt) : "LOCKED") + '</span></div>' +
+              '<div class="text-xs font-black text-white mt-1">' + seatName + '</div>' +
+              '<div class="text-[10px] text-slate-300 mt-0.5 truncate">' + ownerTag + '</div>' +
+            '</button>';
+          }
+
+          return '<button onclick="handleFloorSeatTap(\'' + seatName.replace(/'/g, "\\'") + '\')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-emerald-400 text-left transition">' +
+            '<div class="text-[10px] font-bold text-emerald-400 uppercase">● AVAILABLE</div>' +
+            '<div class="text-xs font-black text-white mt-1">' + seatName + '</div>' +
+            '<div class="text-[10px] text-slate-500 mt-0.5">Tap to open</div>' +
+          '</button>';
+        }).join("");
+
+        return '<div>' +
+          '<div class="text-[11px] font-black uppercase tracking-wider text-slate-300 mb-2">' + sec.zone + '</div>' +
+          '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">' + seatButtons + '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function handleFloorSeatTap(seatName) {
+      const existing = openTabsList.find(function(t) {
+        return (t.tab_name || "").toLowerCase() === seatName.toLowerCase() ||
+               (t.table_code || "").toLowerCase() === seatName.toLowerCase();
+      });
+
+      if (existing) {
+        if (!isCurrentUserMgmt() && (!currentUser || existing.staff_id !== currentUser.id)) {
+          showCarbonToast("🔒 '" + seatName + "' belongs to " + getStaffNameById(existing.staff_id) + ". Manager override required to transfer.", "warn");
+          return;
+        }
+        recallOpenTab(existing.id);
+        setMenuCategory("ALL");
+        showCarbonToast("📌 Recalled open check for " + seatName, "ok");
+        return;
+      }
+
+      activeTableCode = seatName;
+      document.getElementById("ticket-tab-name").value = seatName;
+      document.getElementById("active-tab-name").value = seatName;
+      document.getElementById("modal-table-name").textContent = seatName;
+
+      if (seatName.toUpperCase().indexOf("VIP") !== -1) {
+        setAutoGratPct(18);
+      }
       document.getElementById("guest-count-modal").classList.remove("hidden");
     }
 
     function confirmForcedGuestCount(count) {
       setGuestCount(count);
       document.getElementById("guest-count-modal").classList.add("hidden");
+      setMenuCategory("ALL");
     }
 
     function setGuestCount(count) {
-      guestCountStated = count;
-      document.getElementById("ticket-gc-stated").textContent = count;
-      document.getElementById("custom-guest-input").value = count;
+      guestCountStated = Math.max(1, count || 1);
+      document.getElementById("ticket-gc-stated").textContent = guestCountStated;
+      document.getElementById("custom-guest-input").value = guestCountStated;
       document.querySelectorAll(".gc-pill").forEach(function(btn) {
         const val = parseInt(btn.dataset.gc);
-        btn.className = val === count
+        btn.className = val === guestCountStated
           ? "gc-pill px-2 py-0.5 rounded text-xs font-bold bg-sky-500 text-slate-950"
           : "gc-pill px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300";
       });
+      if (guestCountStated >= 6 && activeAutoGratPct === 0) {
+        setAutoGratPct(18);
+      }
+    }
+
+    function setOrderMode(mode) {
+      activeOrderMode = mode === "TO_GO" ? "TO_GO" : "DINE_IN";
+      const btnDine = document.getElementById("mode-btn-DINE_IN");
+      const btnTogo = document.getElementById("mode-btn-TO_GO");
+      const pill = document.getElementById("ticket-mode-pill");
+
+      if (activeOrderMode === "TO_GO") {
+        btnTogo.className = "py-2 rounded-xl text-xs font-black bg-amber-500 text-slate-950 border border-amber-400 transition";
+        btnDine.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+        pill.textContent = "CARRYOUT / TO-GO";
+        pill.className = "px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[9px] font-black uppercase";
+      } else {
+        btnDine.className = "py-2 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 border border-emerald-400 transition";
+        btnTogo.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition";
+        pill.textContent = "DINE-IN";
+        pill.className = "px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-[9px] font-black uppercase";
+      }
+    }
+
+    function setAutoGratPct(pct) {
+      activeAutoGratPct = Number(pct || 0);
+      [0, 18, 20].forEach(function(p) {
+        const b = document.getElementById("grat-btn-" + p);
+        if (!b) return;
+        b.className = p === activeAutoGratPct
+          ? "px-2.5 py-1 rounded-lg text-[11px] font-black bg-emerald-500 text-slate-950"
+          : "px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-300 border border-slate-700";
+      });
+      renderTicket();
+    }
+
+    function setPaymentMethod(method) {
+      activePaymentMethod = method;
+      const btnCard = document.getElementById("pay-btn-CARD");
+      const btnCash = document.getElementById("pay-btn-CASH");
+      const btnSplit = document.getElementById("pay-btn-SPLIT");
+      const splitRow = document.getElementById("split-tender-row");
+      const ccRow = document.getElementById("cc-tip-row");
+      const ccInput = document.getElementById("ticket-cc-tip");
+
+      btnCard.className = method === "CARD"
+        ? "py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition"
+        : "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+      btnCash.className = method === "CASH"
+        ? "py-2 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 border border-emerald-400 transition"
+        : "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+      btnSplit.className = method === "SPLIT"
+        ? "py-2 rounded-xl text-xs font-black bg-purple-500 text-slate-950 border border-purple-400 transition"
+        : "py-2 rounded-xl text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition";
+
+      if (method === "SPLIT") {
+        splitRow.classList.remove("hidden");
+        splitRow.classList.add("grid");
+        ccRow.classList.remove("hidden");
+        syncSplitCardRemainder();
+      } else {
+        splitRow.classList.add("hidden");
+        splitRow.classList.remove("grid");
+        if (method === "CASH") {
+          ccRow.classList.add("hidden");
+          if (ccInput) ccInput.value = "";
+        } else {
+          ccRow.classList.remove("hidden");
+        }
+      }
+    }
+
+    function getTicketTotals() {
+      const subtotal = ticket.reduce(function(s, i) {
+        return s + (isOwnerSkinActive ? Number(i.cogs || 0) : Number(i.price || 0)) * Number(i.qty || 1);
+      }, 0);
+      const totalCogs = ticket.reduce(function(s, i) {
+        return s + Number(i.cogs || 0) * Number(i.qty || 1);
+      }, 0);
+      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
+      const autoGrat = isOwnerSkinActive ? 0 : subtotal * (activeAutoGratPct / 100);
+      const total = subtotal + tax + autoGrat;
+      return { subtotal: subtotal, totalCogs: totalCogs, tax: tax, autoGrat: autoGrat, total: total };
+    }
+
+    function syncSplitCardRemainder() {
+      const totals = getTicketTotals();
+      const cashVal = Math.max(0, parseFloat(document.getElementById("split-cash-amt").value || "0"));
+      const cardRem = Math.max(0, totals.total - cashVal);
+      document.getElementById("split-card-amt").value = cardRem.toFixed(2);
     }
 
     function toggleOwnerSkin() {
@@ -799,19 +1421,73 @@
       renderTicket();
     }
 
-    // MENU GRID, POST-TAP DRINK MODS & ACTIVE TICKET
+    // DYNAMIC MENU GRID & POST-TAP BAR / KITCHEN / VIP MODIFIER ENGINE
+    function resolveModifierGroupForItem(item) {
+      const explicit = Array.isArray(item.modifier_group_names) && item.modifier_group_names.length
+        ? item.modifier_group_names[0]
+        : null;
+      if (explicit === "NONE") return null;
+
+      const pool = (modifierGroups && modifierGroups.length) ? modifierGroups : FALLBACK_MODIFIER_GROUPS;
+      if (explicit && explicit !== "AUTO") {
+        const matched = pool.find(function(g) { return g.group_name.toLowerCase() === explicit.toLowerCase(); });
+        if (matched) return matched;
+      }
+
+      const nameU = (item.name || "").toUpperCase();
+      const catU = (item.category || "SPIRITS").toUpperCase();
+      const deptU = (item.department || (catU === "KITCHEN" || catU === "FOOD" ? "FOOD" : "BAR")).toUpperCase();
+
+      if (catU.indexOf("VIP") !== -1 || nameU.indexOf("BOTTLE") !== -1) {
+        return pool.find(function(g) { return g.department === "VIP" || g.group_name.indexOf("VIP") !== -1; }) || null;
+      }
+      if (catU.indexOf("BEER") !== -1 || catU.indexOf("WINE") !== -1) {
+        return null;
+      }
+      if (deptU === "FOOD" || catU === "KITCHEN" || catU === "FOOD") {
+        if (nameU.indexOf("WING") !== -1) {
+          return pool.find(function(g) { return g.group_name.toUpperCase().indexOf("WING") !== -1; }) || pool[1];
+        }
+        if (nameU.indexOf("TACO") !== -1 || nameU.indexOf("QUESADILLA") !== -1 || nameU.indexOf("BIRRIA") !== -1) {
+          return pool.find(function(g) { return g.group_name.toUpperCase().indexOf("TACO") !== -1; }) || pool[3];
+        }
+        if (nameU.indexOf("BURGER") !== -1 || nameU.indexOf("SLIDER") !== -1 || nameU.indexOf("STEAK") !== -1 || nameU.indexOf("LAMB") !== -1 || nameU.indexOf("CHOP") !== -1) {
+          return pool.find(function(g) { return g.group_name.toUpperCase().indexOf("BURGER") !== -1; }) || pool[2];
+        }
+        return pool.find(function(g) { return g.group_name.toUpperCase().indexOf("SHAREABLE") !== -1; }) || pool[4];
+      }
+      return pool.find(function(g) { return g.department === "BAR"; }) || pool[0];
+    }
+
     function renderMenuGrid() {
       const grid = document.getElementById("menu-grid");
       if (!grid) return;
       grid.innerHTML = "";
-      if (!menuItems.length) {
-        grid.innerHTML = '<div class="col-span-3 text-xs text-slate-400 py-6 text-center">No menu items loaded yet. Add items in Menu & Staff.</div>';
+
+      const filtered = menuItems.filter(function(item) {
+        if (activeMenuCategory === "ALL" || activeMenuCategory === "FLOOR_MAP") return true;
+        const cat = (item.category || "SPIRITS").toUpperCase();
+        const dept = (item.department || "BAR").toUpperCase();
+        if (activeMenuCategory === "KITCHEN") return dept === "FOOD" || cat === "KITCHEN" || cat === "FOOD";
+        if (activeMenuCategory === "VIP") return cat.indexOf("VIP") !== -1;
+        if (activeMenuCategory === "BAR") return dept !== "FOOD" && cat !== "KITCHEN" && cat !== "FOOD" && cat.indexOf("VIP") === -1;
+        return true;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="col-span-full text-xs text-slate-400 py-8 text-center">No items in this category yet. Add or bulk-import items in ⚙️ Menu & Staff.</div>';
         return;
       }
 
-      menuItems.forEach(function(item) {
+      filtered.forEach(function(item) {
         const activePrice = isOwnerSkinActive ? Number(item.wholesale_cogs || 0) : Number(item.price || 0);
         const disabled = Boolean(item.is_86d);
+        const catU = (item.category || "BAR").toUpperCase();
+        const deptU = (item.department || (catU === "KITCHEN" ? "FOOD" : "BAR")).toUpperCase();
+        const badgeTone = catU.indexOf("VIP") !== -1
+          ? "text-purple-300"
+          : (deptU === "FOOD" ? "text-amber-300" : "text-sky-300");
+
         const card = document.createElement("button");
         card.disabled = disabled;
         card.onclick = function() { addItemToTicket(item); };
@@ -823,7 +1499,7 @@
         card.innerHTML =
           '<div>' +
             '<div class="flex justify-between items-start gap-1">' +
-              '<span class="text-[10px] font-bold uppercase text-slate-400">' + (item.category || "BAR") + '</span>' +
+              '<span class="text-[10px] font-bold uppercase ' + badgeTone + '">' + (item.category || "BAR") + '</span>' +
               (disabled ? '<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[10px] font-black">86D</span>' : '') +
             '</div>' +
             '<div class="text-sm font-black text-white mt-1">' + item.name + '</div>' +
@@ -837,35 +1513,84 @@
     }
 
     function addItemToTicket(item) {
+      const catU = (item.category || "SPIRITS").toUpperCase();
+      const deptU = (item.department || (catU === "KITCHEN" || catU === "FOOD" ? "FOOD" : "BAR")).toUpperCase();
+      const defaultPourOz = Number(item.pour_oz || 0) > 0
+        ? Number(item.pour_oz)
+        : (catU.indexOf("VIP") !== -1 ? 25.36 : (deptU === "BAR" && catU.indexOf("BEER") === -1 ? 1.5 : 0));
+
       const unitPrice = isOwnerSkinActive ? Number(item.wholesale_cogs || 0) : Number(item.price || 0);
       ticket.push({
         id: item.id,
         name: item.name,
+        department: deptU,
         category: item.category || "SPIRITS",
         price: unitPrice,
         cogs: Number(item.wholesale_cogs || 0),
         qty: 1,
+        pour_oz: defaultPourOz,
+        pour_mult: 1,
+        extra_ramekins: 0,
+        liquor_bottle_id: item.liquor_bottle_id || null,
+        liquor_bottle_name: item.liquor_bottle_name || item.name,
         mods: [],
+        sent_to_prep: false,
         packaging: Array.isArray(item.packaging_recipe) ? item.packaging_recipe : []
       });
       renderTicket();
 
-      if ((item.category || "").toUpperCase() !== "KITCHEN") {
-        pendingModIdx = ticket.length - 1;
-        document.getElementById("mod-modal-title").textContent = item.name;
-        document.getElementById("mod-active-tags").textContent = "Standard Pour (Tap modifiers below to add)";
-        document.getElementById("mod-custom-note").value = "";
-        document.getElementById("drink-mod-modal").classList.remove("hidden");
+      const modGroup = resolveModifierGroupForItem(item);
+      if (modGroup && Array.isArray(modGroup.options) && modGroup.options.length) {
+        openDynamicModModal(ticket.length - 1, item, modGroup);
       }
     }
 
-    function applyDrinkMod(modLabel, upcharge) {
+    function openDynamicModModal(ticketIdx, item, modGroup) {
+      pendingModIdx = ticketIdx;
+      activeModalOptions = modGroup.options || [];
+      document.getElementById("mod-modal-group-label").textContent = modGroup.group_name;
+      document.getElementById("mod-modal-title").textContent = item.name;
+      document.getElementById("mod-active-tags").textContent = "Standard Prep (Tap options below to add)";
+      document.getElementById("mod-custom-note").value = "";
+
+      const box = document.getElementById("mod-dynamic-options");
+      box.innerHTML = activeModalOptions.map(function(opt, i) {
+        const up = Number(opt.price || 0);
+        const isDouble = Number(opt.pour_mult || 1) > 1;
+        const tone = isDouble
+          ? "col-span-2 bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/50 text-amber-300"
+          : (up > 0
+              ? "bg-sky-500/15 hover:bg-sky-500/25 border-sky-500/40 text-sky-200"
+              : "bg-slate-900 hover:bg-slate-800 border-slate-700 text-white");
+        return '<button onclick="applyDynamicModifier(' + i + ')" class="py-2.5 px-3 rounded-xl border text-left flex items-center justify-between gap-2 transition ' + tone + '">' +
+          '<span>' + opt.name + '</span>' +
+          (up > 0 ? '<span class="text-[11px] font-black text-emerald-400">+' + fmt(up) + '</span>' : '') +
+        '</button>';
+      }).join("");
+
+      document.getElementById("drink-mod-modal").classList.remove("hidden");
+    }
+
+    function applyDynamicModifier(optIdx) {
       if (pendingModIdx === null || !ticket[pendingModIdx]) return;
+      const opt = activeModalOptions[optIdx];
+      if (!opt) return;
       const line = ticket[pendingModIdx];
-      if (!line.mods.includes(modLabel)) {
-        line.mods.push(modLabel);
-        if (!isOwnerSkinActive && upcharge > 0) {
-          line.price = Number(line.price || 0) + Number(upcharge);
+      const label = opt.price > 0 ? (opt.name + " (+" + fmt(opt.price) + ")") : opt.name;
+
+      if (!line.mods.includes(label)) {
+        line.mods.push(label);
+        if (!isOwnerSkinActive && Number(opt.price || 0) > 0) {
+          line.price = Number(line.price || 0) + Number(opt.price || 0);
+        }
+        if (Number(opt.cogs || 0) > 0) {
+          line.cogs = Number(line.cogs || 0) + Number(opt.cogs || 0);
+        }
+        if (Number(opt.pour_mult || 1) > 1) {
+          line.pour_mult = Math.max(line.pour_mult || 1, Number(opt.pour_mult));
+        }
+        if (Number(opt.extra_ramekin || 0) > 0) {
+          line.extra_ramekins = Number(line.extra_ramekins || 0) + Number(opt.extra_ramekin);
         }
       }
       document.getElementById("mod-active-tags").textContent = "Selected: " + line.mods.join(", ");
@@ -874,9 +1599,14 @@
 
     function addCustomDrinkMod() {
       const val = document.getElementById("mod-custom-note").value.trim();
-      if (!val) return;
-      applyDrinkMod(val, 0);
+      if (!val || pendingModIdx === null || !ticket[pendingModIdx]) return;
+      const line = ticket[pendingModIdx];
+      if (!line.mods.includes(val)) {
+        line.mods.push(val);
+      }
       document.getElementById("mod-custom-note").value = "";
+      document.getElementById("mod-active-tags").textContent = "Selected: " + line.mods.join(", ");
+      renderTicket();
     }
 
     function closeDrinkModModal() {
@@ -887,36 +1617,37 @@
     function renderTicket() {
       const container = document.getElementById("ticket-items");
       if (!container) return;
+
+      const statusTag = document.getElementById("active-tab-status-tag");
+      if (statusTag) {
+        statusTag.textContent = activeOpenTabId ? "📌 Recalled Open Tab" : "New Check";
+        statusTag.className = activeOpenTabId ? "text-[10px] font-black text-amber-400 uppercase" : "text-[10px] font-bold text-slate-500 uppercase";
+      }
+
       if (ticket.length === 0) {
         container.innerHTML = '<div class="text-center text-xs text-slate-500 py-8">Tap priority pours or plates on the left to ring.</div>';
         document.getElementById("ticket-subtotal").textContent = fmt(0);
         document.getElementById("ticket-tax").textContent = fmt(0);
         document.getElementById("ticket-total").textContent = fmt(0);
-        document.getElementById("model-b-preview").textContent = "No consumables queued yet.";
-        document.getElementById("ticket-gc-calc").textContent = "0";
+        document.getElementById("ticket-grat-line").classList.add("hidden");
+        if (activePaymentMethod === "SPLIT") syncSplitCardRemainder();
         return;
       }
 
-      let subtotal = 0;
-      const packagingTotals = {};
       container.innerHTML = "";
-
       ticket.forEach(function(line, idx) {
         const qty = Number(line.qty || 1);
         const unit = isOwnerSkinActive ? Number(line.cogs || 0) : Number(line.price || 0);
         const lineTotal = unit * qty;
-        subtotal += lineTotal;
-
-        (line.packaging || []).forEach(function(pkg) {
-          packagingTotals[pkg.item] = (packagingTotals[pkg.item] || 0) + Number(pkg.qty || 1) * qty;
-        });
 
         const row = document.createElement("div");
         row.className = "flex items-center justify-between bg-slate-950 border border-slate-800 px-3 py-2 rounded-lg text-xs";
         row.innerHTML =
           '<div>' +
-            '<div class="font-bold text-white">' + (qty > 1 ? qty + "x " : "") + line.name + '</div>' +
-            (line.mods && line.mods.length ? '<div class="text-[10px] text-sky-400">+ ' + line.mods.join(", ") + '</div>' : '') +
+            '<div class="font-bold text-white">' + (qty > 1 ? qty + "x " : "") + line.name +
+              (line.sent_to_prep ? ' <span class="text-[9px] text-emerald-400 uppercase ml-1">✓ Fired</span>' : '') +
+            '</div>' +
+            (line.mods && line.mods.length ? '<div class="text-[10px] text-sky-400 font-semibold">+ ' + line.mods.join(", ") + '</div>' : '') +
           '</div>' +
           '<div class="flex items-center gap-3">' +
             '<span class="font-bold text-emerald-400">' + fmt(lineTotal) + '</span>' +
@@ -925,16 +1656,23 @@
         container.appendChild(row);
       });
 
-      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
-      const total = subtotal + tax;
+      const totals = getTicketTotals();
+      document.getElementById("ticket-subtotal").textContent = fmt(totals.subtotal);
+      document.getElementById("ticket-tax").textContent = fmt(totals.tax);
 
-      document.getElementById("ticket-subtotal").textContent = fmt(subtotal);
-      document.getElementById("ticket-tax").textContent = fmt(tax);
-      document.getElementById("ticket-total").textContent = fmt(total);
-      document.getElementById("ticket-gc-calc").textContent = Math.max(1, ticket.length);
+      const gratLine = document.getElementById("ticket-grat-line");
+      if (totals.autoGrat > 0) {
+        gratLine.classList.remove("hidden");
+        gratLine.classList.add("flex");
+        document.getElementById("ticket-grat-label").textContent = "Auto-Gratuity (" + activeAutoGratPct + "%)";
+        document.getElementById("ticket-grat").textContent = fmt(totals.autoGrat);
+      } else {
+        gratLine.classList.add("hidden");
+        gratLine.classList.remove("flex");
+      }
 
-      const pkgEntries = Object.entries(packagingTotals).map(function(kv) { return kv[1] + "x " + kv[0]; });
-      document.getElementById("model-b-preview").textContent = pkgEntries.length ? pkgEntries.join(" • ") : "Standard glassware service";
+      document.getElementById("ticket-total").textContent = fmt(totals.total);
+      if (activePaymentMethod === "SPLIT") syncSplitCardRemainder();
     }
 
     function removeTicketItem(idx) {
@@ -942,111 +1680,285 @@
       renderTicket();
     }
 
-    // PILLAR 2: OPEN TABS & KDS / SERVICE BAR ROUTING
+    // SILENT BACKGROUND TWO-LAYER MICRO-DEPLETION (STEALTH — NEVER SHOWN ON REGISTER)
+    function computeSilentModelBGuests(items) {
+      let drinkOrEntreeUnits = 0;
+      (items || []).forEach(function(i) {
+        const q = Number(i.qty || 1);
+        if ((i.category || "").toUpperCase().indexOf("VIP") !== -1) {
+          drinkOrEntreeUnits += 4 * q;
+        } else {
+          drinkOrEntreeUnits += q;
+        }
+      });
+      return Math.max(1, drinkOrEntreeUnits);
+    }
+
+    async function runSilentMicroDepletion(orderId, items, orderMode, statedGuests, modelBGuests) {
+      if (!items || !items.length) return;
+      const entries = [];
+      let boxedFoodCount = 0;
+
+      items.forEach(function(line) {
+        const qty = Number(line.qty || 1);
+        const deptU = (line.department || ((line.category || "").toUpperCase() === "KITCHEN" ? "FOOD" : "BAR")).toUpperCase();
+        const nameU = (line.name || "").toUpperCase();
+
+        // Layer 1A: Exact Liquor Ounce Depletion (2x on Double Modifier)
+        const pourOz = Number(line.pour_oz || 0) * Number(line.pour_mult || 1) * qty;
+        if (pourOz > 0 && deptU !== "FOOD") {
+          entries.push({
+            depletion_layer: "LAYER_1_BOM",
+            inventory_type: "LIQUOR_OZ",
+            item_id: line.liquor_bottle_id || "",
+            item_name: line.liquor_bottle_name || line.name,
+            qty_depleted: Number(pourOz.toFixed(2)),
+            unit_label: "oz",
+            unit_cogs: 0
+          });
+        }
+
+        // Layer 1B: Item & Modifier Disposables (Cups/Straws/Napkins, Wing/Sauce 2oz Ramekins + Lids)
+        if (Array.isArray(line.packaging) && line.packaging.length) {
+          line.packaging.forEach(function(pkg) {
+            if (orderMode === "TO_GO" && deptU === "FOOD" && (pkg.item || "").toUpperCase().indexOf("BOAT") !== -1) {
+              return; // Replaced by Hinged To-Go Container in Layer 2
+            }
+            entries.push({
+              depletion_layer: "LAYER_1_BOM",
+              inventory_type: "DRY_GOODS",
+              sku_code: pkg.sku_code || "",
+              item_name: pkg.item || "Disposable",
+              qty_depleted: Number(pkg.qty || 1) * qty,
+              unit_label: "each",
+              unit_cogs: Number(pkg.unit_cogs || 0)
+            });
+          });
+        } else if (deptU !== "FOOD") {
+          entries.push(
+            { depletion_layer: "LAYER_1_BOM", inventory_type: "DRY_GOODS", sku_code: "CUP_12OZ_ROCKS", item_name: "12oz Rocks Cup", qty_depleted: qty, unit_label: "each", unit_cogs: 0.085 },
+            { depletion_layer: "LAYER_1_BOM", inventory_type: "DRY_GOODS", sku_code: "BEV_NAP_BLACK", item_name: "Black Bev Nap", qty_depleted: qty, unit_label: "each", unit_cogs: 0.018 },
+            { depletion_layer: "LAYER_1_BOM", inventory_type: "DRY_GOODS", sku_code: "STRAW_SIP_BLACK", item_name: "Black Sip Straw", qty_depleted: qty, unit_label: "each", unit_cogs: 0.012 }
+          );
+        }
+
+        // Automatic Ramekin + Lid on Wings or Extra Side Sauce Modifiers
+        const baseRamekins = (nameU.indexOf("WING") !== -1 ? 1 : 0) + Number(line.extra_ramekins || 0);
+        if (baseRamekins > 0) {
+          entries.push(
+            { depletion_layer: "LAYER_1_BOM", inventory_type: "DRY_GOODS", sku_code: "RAMEKIN_2OZ", item_name: "2oz Souffle Ramekin", qty_depleted: baseRamekins * qty, unit_label: "each", unit_cogs: 0.035 },
+            { depletion_layer: "LAYER_1_BOM", inventory_type: "DRY_GOODS", sku_code: "RAMEKIN_LID_2OZ", item_name: "2oz Ramekin Lid", qty_depleted: baseRamekins * qty, unit_label: "each", unit_cogs: 0.025 }
+          );
+        }
+
+        if (deptU === "FOOD") {
+          boxedFoodCount += qty;
+          if (orderMode === "DINE_IN" && (!line.packaging || !line.packaging.length)) {
+            entries.push({
+              depletion_layer: "LAYER_1_BOM",
+              inventory_type: "DRY_GOODS",
+              sku_code: "DINEIN_FOOD_BOAT",
+              item_name: "Dine-In Food Boat / Liner",
+              qty_depleted: qty,
+              unit_label: "each",
+              unit_cogs: 0.095
+            });
+          }
+        }
+      });
+
+      // Layer 2: Carryout / To-Go Packaging Swap (Hinged Boxes, Utensil Kits per Guest, 1 Bag per 3 Boxes)
+      if (orderMode === "TO_GO" && boxedFoodCount > 0) {
+        const bagsNeeded = Math.max(1, Math.ceil(boxedFoodCount / 3));
+        const utensilKits = Math.max(1, statedGuests || 1);
+        entries.push(
+          { depletion_layer: "LAYER_2_TOGO", inventory_type: "DRY_GOODS", sku_code: "TOGO_HINGED_BOX", item_name: "Hinged To-Go Container", qty_depleted: boxedFoodCount, unit_label: "each", unit_cogs: 0.34 },
+          { depletion_layer: "LAYER_2_TOGO", inventory_type: "DRY_GOODS", sku_code: "UTENSIL_KIT_WRAPPED", item_name: "Wrapped Plastic Utensil Kit", qty_depleted: utensilKits, unit_label: "each", unit_cogs: 0.14 },
+          { depletion_layer: "LAYER_2_TOGO", inventory_type: "DRY_GOODS", sku_code: "CARRYOUT_BAG", item_name: "Carryout Bag", qty_depleted: bagsNeeded, unit_label: "each", unit_cogs: 0.11 }
+        );
+      }
+
+      if (!entries.length) return;
+      const { error } = await db.rpc("rpc_deplete_inventory_batch", {
+        p_venue_id: VENUE_ID,
+        p_order_id: orderId,
+        p_order_mode: orderMode,
+        p_guest_stated: statedGuests,
+        p_guest_model_b: modelBGuests,
+        p_entries: entries
+      });
+      if (error) console.warn("Silent micro-depletion warning:", error.message);
+    }
+
+    // PILLAR 2: SCOPED OPEN TABS & SCHEMA-COMPATIBLE KDS ROUTING
     async function loadOpenTabs() {
-      const { data } = await db.from("orders").select("*").eq("venue_id", VENUE_ID).eq("status", "OPEN");
+      const { data, error } = await db.from("orders").select("*").eq("venue_id", VENUE_ID).eq("status", "OPEN").order("created_at", { ascending: false });
+      if (error) {
+        showCarbonToast("Error loading open tabs: " + error.message, "error");
+        return;
+      }
       openTabsList = data || [];
       renderOpenTabsStrip();
+      renderManagerOpenChecks();
+      if (activeMenuCategory === "FLOOR_MAP") renderFloorMap();
     }
 
     function renderOpenTabsStrip() {
       const strip = document.getElementById("open-tabs-strip");
       if (!strip) return;
-      if (!openTabsList.length) {
-        strip.innerHTML = '<span class="text-[11px] text-slate-500">No open bar/VIP tabs</span>';
+
+      const visibleTabs = openTabsList.filter(function(t) {
+        if (isCurrentUserMgmt()) return true;
+        return currentUser && t.staff_id === currentUser.id;
+      });
+
+      if (!visibleTabs.length) {
+        strip.innerHTML = '<span class="text-[11px] text-slate-500">No open tabs under your PIN</span>';
         return;
       }
-      strip.innerHTML = openTabsList.map(function(t) {
+
+      strip.innerHTML = visibleTabs.map(function(t) {
         const active = t.id === activeOpenTabId;
         const amt = Number(t.total_retail || t.total_amount || t.subtotal || 0);
+        const ownerTag = isCurrentUserMgmt() ? " • " + getStaffNameById(t.staff_id) : "";
         const cls = active
           ? "bg-amber-500 text-slate-950 border-amber-400"
           : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800";
-        return '<button onclick="recallOpenTab(\'' + t.id + '\')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ' + cls + '">📌 ' + (t.tab_name || "Tab") + " (" + fmt(amt) + ")</button>";
+        return '<button onclick="recallOpenTab(\'' + t.id + '\')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ' + cls + '">📌 ' + (t.tab_name || "Tab") + ownerTag + " (" + fmt(amt) + ")</button>";
       }).join("");
     }
 
-    async function routeItemsToPrep(orderId, tabName, items) {
-      if (!items || !items.length) return;
-      const formatted = items.map(function(i) {
-        const modStr = i.mods && i.mods.length ? " [" + i.mods.join(", ") + "]" : "";
-        return { name: i.name + modStr, qty: i.qty || 1, category: i.category || "SPIRITS" };
-      });
-      const kitchenItems = formatted.filter(function(i) { return (i.category || "").toUpperCase() === "KITCHEN"; });
-      const barItems = formatted.filter(function(i) { return (i.category || "").toUpperCase() !== "KITCHEN"; });
-      const serverName = currentUser ? currentUser.full_name : "Terminal";
+    async function routeItemsToPrep(orderId, tabName, itemsToRoute) {
+      const unsent = (itemsToRoute || []).filter(function(i) { return !i.sent_to_prep; });
+      if (!unsent.length) return;
 
-      const rows = [];
-      if (kitchenItems.length) rows.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "KITCHEN", items: kitchenItems, server_name: serverName });
-      if (barItems.length) rows.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "SERVICE_BAR", items: barItems, server_name: serverName });
-      if (rows.length) {
-        await db.from("prep_tickets").insert(rows);
+      const serverName = currentUser ? currentUser.full_name : "Terminal";
+      const rows = unsent.map(function(i) {
+        const catU = (i.category || "SPIRITS").toUpperCase();
+        const deptU = (i.department || (catU === "KITCHEN" || catU === "FOOD" ? "FOOD" : "BAR")).toUpperCase();
+        const station = deptU === "FOOD" ? "KITCHEN" : "SERVICE_BAR";
+        return {
+          venue_id: VENUE_ID,
+          order_id: orderId,
+          tab_name: tabName,
+          order_mode: activeOrderMode,
+          station: station,
+          item_name: i.name,
+          qty: Number(i.qty || 1),
+          modifiers: Array.isArray(i.mods) ? i.mods : [],
+          notes: "Server: " + serverName,
+          status: "PENDING"
+        };
+      });
+
+      const { error } = await db.from("prep_tickets").insert(rows);
+      if (error) {
+        showCarbonToast("KDS Prep routing warning: " + error.message, "warn");
+      } else {
+        unsent.forEach(function(i) { i.sent_to_prep = true; });
         await loadPrepTickets();
       }
     }
 
     async function holdOpenTab() {
-      if (!ticket.length) return alert("Add items to the ticket before holding a tab.");
+      if (!ticket.length) {
+        showCarbonToast("Add at least one item before holding a tab.", "warn");
+        return;
+      }
       const tabInput = document.getElementById("active-tab-name");
-      const tabName = tabInput.value.trim() || document.getElementById("ticket-tab-name").value.trim() || ("Bar Tab #" + (openTabsList.length + 1));
-      const subtotal = ticket.reduce(function(s, i) { return s + Number(i.price || 0) * Number(i.qty || 1); }, 0);
-      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
-      const tax = subtotal * 0.08;
+      const tabName = tabInput.value.trim() || document.getElementById("ticket-tab-name").value.trim() || ("Tab #" + (openTabsList.length + 1));
+      const totals = getTicketTotals();
+      const modelBGuests = computeSilentModelBGuests(ticket);
 
       let orderId = activeOpenTabId;
       if (activeOpenTabId) {
-        await db.from("orders").update({
+        await routeItemsToPrep(orderId, tabName, ticket);
+        const { error } = await db.from("orders").update({
           tab_name: tabName,
+          table_code: activeTableCode || tabName,
+          order_mode: activeOrderMode,
+          auto_grat: totals.autoGrat,
+          auto_grat_pct: activeAutoGratPct,
+          guest_count_stated: guestCountStated,
+          guest_count_calculated: modelBGuests,
           items: ticket,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: subtotal + tax,
-          total_retail: subtotal,
-          total_cogs: totalCogs
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          total_amount: totals.total,
+          total_retail: totals.subtotal,
+          total_cogs: totals.totalCogs
         }).eq("id", activeOpenTabId);
+        if (error) {
+          showCarbonToast("Error updating held tab: " + error.message, "error");
+          return;
+        }
       } else {
+        // Pre-mark items as routed after insert
         const { data, error } = await db.from("orders").insert({
           venue_id: VENUE_ID,
           staff_id: currentUser ? currentUser.id : null,
           tab_name: tabName,
-          service_mode: serviceModel,
+          table_code: activeTableCode || tabName,
+          service_mode: serviceMode,
+          order_mode: activeOrderMode,
+          auto_grat: totals.autoGrat,
+          auto_grat_pct: activeAutoGratPct,
           guest_count_stated: guestCountStated,
-          guest_count_calculated: Math.max(1, ticket.length),
+          guest_count_calculated: modelBGuests,
           status: "OPEN",
           items: ticket,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: subtotal + tax,
-          total_retail: subtotal,
-          total_cogs: totalCogs
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          total_amount: totals.total,
+          total_retail: totals.subtotal,
+          total_cogs: totals.totalCogs
         }).select().single();
-        if (error) return alert("Error holding tab: " + error.message);
+
+        if (error) {
+          showCarbonToast("Error holding tab: " + error.message, "error");
+          return;
+        }
         orderId = data.id;
+        await routeItemsToPrep(orderId, tabName, ticket);
+        await db.from("orders").update({ items: ticket }).eq("id", orderId);
       }
 
-      await routeItemsToPrep(orderId, tabName, ticket);
       ticket = [];
       activeOpenTabId = null;
+      activeTableCode = "";
       tabInput.value = "";
       document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      setAutoGratPct(0);
       renderTicket();
       await loadOpenTabs();
-      alert("📌 Tab '" + tabName + "' held & routed to KDS / Service Bar!");
+      showCarbonToast("📌 Tab '" + tabName + "' held & routed to KDS / Service Bar!", "ok");
     }
 
     function recallOpenTab(tabId) {
       const tab = openTabsList.find(function(t) { return t.id === tabId; });
       if (!tab) return;
+      if (!isCurrentUserMgmt() && (!currentUser || tab.staff_id !== currentUser.id)) {
+        showCarbonToast("🔒 You can only recall open tabs under your own PIN.", "warn");
+        return;
+      }
       activeOpenTabId = tab.id;
+      activeTableCode = tab.table_code || tab.tab_name || "";
       ticket = Array.isArray(tab.items) ? JSON.parse(JSON.stringify(tab.items)) : [];
       document.getElementById("active-tab-name").value = tab.tab_name || "";
       document.getElementById("ticket-tab-name").value = tab.tab_name || "Open Tab";
+      setOrderMode(tab.order_mode || "DINE_IN");
+      setAutoGratPct(Number(tab.auto_grat_pct || 0));
+      setGuestCount(Number(tab.guest_count_stated || 1));
       renderTicket();
       renderOpenTabsStrip();
     }
 
     async function loadPrepTickets() {
-      const { data } = await db.from("prep_tickets").select("*").eq("venue_id", VENUE_ID).eq("status", "PENDING");
+      const { data, error } = await db.from("prep_tickets").select("*").eq("venue_id", VENUE_ID).eq("status", "PENDING");
+      if (error) {
+        showCarbonToast("Error loading KDS queue: " + error.message, "error");
+        return;
+      }
       prepTicketsList = (data || []).sort(function(a, b) {
         return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
       });
@@ -1065,78 +1977,144 @@
       document.getElementById("kds-kitchen-count").textContent = kitchen.length + " active";
       document.getElementById("kds-bar-count").textContent = bar.length + " active";
 
-      function buildCard(t, accent) {
-        const mins = t.created_at ? Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 60000)) : 0;
-        const lines = (t.items || []).map(function(i) {
-          return '<div class="text-xs text-white"><strong class="' + accent + '">' + (i.qty || 1) + 'x</strong> ' + i.name + '</div>';
+      function buildTicketGroupCards(list, accent) {
+        if (!list.length) return "";
+        return list.map(function(t) {
+          const mins = t.created_at ? Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 60000)) : 0;
+          const modeTag = (t.order_mode || "DINE_IN") === "TO_GO"
+            ? '<span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-black uppercase">🛍️ CARRYOUT</span>'
+            : '<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black uppercase">🍽️ DINE-IN</span>';
+
+          // Supports both normalized item_name rows and legacy items JSONB rows seamlessly
+          let itemHtml = "";
+          if (t.item_name) {
+            const modsArr = Array.isArray(t.modifiers) ? t.modifiers : [];
+            itemHtml = '<div class="text-sm font-black text-white"><span class="' + accent + '">' + (t.qty || 1) + 'x</span> ' + t.item_name + '</div>' +
+              (modsArr.length ? '<div class="mt-1 px-2 py-1 rounded bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs font-black uppercase">⚡ ' + modsArr.join(" • ") + '</div>' : '');
+          } else if (Array.isArray(t.items)) {
+            itemHtml = t.items.map(function(i) {
+              return '<div class="text-xs font-bold text-white"><strong class="' + accent + '">' + (i.qty || 1) + 'x</strong> ' + i.name + '</div>';
+            }).join("");
+          }
+
+          return '<div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">' +
+            '<div class="flex items-center justify-between gap-2">' +
+              '<div class="flex flex-wrap items-center gap-2">' +
+                modeTag +
+                '<span class="text-xs font-black text-white">' + (t.tab_name || "Order") + '</span>' +
+                '<span class="text-[10px] text-slate-400">' + (t.notes || "") + " • " + mins + 'm ago</span>' +
+              '</div>' +
+              '<button onclick="bumpPrepTicket(\'' + t.id + '\')" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] uppercase">✓ Bump</button>' +
+            '</div>' +
+            '<div class="border-t border-slate-800 pt-2">' + itemHtml + '</div>' +
+          '</div>';
         }).join("");
-        return '<div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">' +
-          '<div class="flex items-center justify-between">' +
-            '<div><span class="text-xs font-black text-white">' + (t.tab_name || "Order") + '</span>' +
-            '<span class="ml-2 text-[10px] text-slate-400">by ' + (t.server_name || "Staff") + " • " + mins + 'm ago</span></div>' +
-            '<button onclick="bumpPrepTicket(\'' + t.id + '\')" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] uppercase">✓ Bump</button>' +
-          '</div>' +
-          '<div class="space-y-1 border-t border-slate-800 pt-2">' + lines + '</div>' +
-        '</div>';
       }
 
-      document.getElementById("kds-kitchen-list").innerHTML = kitchen.length ? kitchen.map(function(t) { return buildCard(t, "text-amber-400"); }).join("") : '<p class="text-xs text-slate-500">No active kitchen tickets.</p>';
-      document.getElementById("kds-bar-list").innerHTML = bar.length ? bar.map(function(t) { return buildCard(t, "text-emerald-400"); }).join("") : '<p class="text-xs text-slate-500">No active service bar tickets.</p>';
+      document.getElementById("kds-kitchen-list").innerHTML = kitchen.length
+        ? buildTicketGroupCards(kitchen, "text-amber-400")
+        : '<p class="text-xs text-slate-500">No active kitchen tickets.</p>';
+      document.getElementById("kds-bar-list").innerHTML = bar.length
+        ? buildTicketGroupCards(bar, "text-emerald-400")
+        : '<p class="text-xs text-slate-500">No active service bar tickets.</p>';
     }
 
     async function bumpPrepTicket(ticketId) {
-      await db.from("prep_tickets").update({ status: "BUMPED", bumped_at: new Date().toISOString() }).eq("id", ticketId);
+      const { error } = await db.from("prep_tickets").update({ status: "BUMPED", bumped_at: new Date().toISOString() }).eq("id", ticketId);
+      if (error) showCarbonToast("Bump error: " + error.message, "error");
       await loadPrepTickets();
     }
-    // CHECK CLOSE + AUTO-CLAIMED CC TIPS
+
+    // CHECK CLOSE (CARD / CASH / SPLIT + AUTO-GRAT + SILENT DEPLETION + AUTO-CLAIM CC TIPS)
     async function closeAndPushCheck() {
-      if (ticket.length === 0) return alert("Ring at least one item before closing check.");
+      if (ticket.length === 0) {
+        showCarbonToast("Ring at least one item before closing check.", "warn");
+        return;
+      }
 
       const tabName = document.getElementById("active-tab-name").value.trim() || document.getElementById("ticket-tab-name").value.trim() || "Bar Walk-In";
-      const subtotal = ticket.reduce(function(s, i) { return s + (isOwnerSkinActive ? Number(i.cogs || 0) : Number(i.price || 0)) * Number(i.qty || 1); }, 0);
-      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
-      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
-      const total = subtotal + tax;
-      const ccTipVal = Math.max(0, parseFloat(document.getElementById("ticket-cc-tip").value || "0"));
-      const itemsSnapshot = JSON.parse(JSON.stringify(ticket));
+      const totals = getTicketTotals();
+      const modelBGuests = computeSilentModelBGuests(ticket);
+      const ccTipVal = (activePaymentMethod === "CARD" || activePaymentMethod === "SPLIT")
+        ? Math.max(0, parseFloat(document.getElementById("ticket-cc-tip").value || "0"))
+        : 0;
 
+      let splitPayments = [];
+      if (activePaymentMethod === "SPLIT") {
+        const cashPart = Math.min(totals.total, Math.max(0, parseFloat(document.getElementById("split-cash-amt").value || "0")));
+        const cardPart = Math.max(0, Number((totals.total - cashPart).toFixed(2)));
+        splitPayments = [
+          { tender: "CASH", amount: Number(cashPart.toFixed(2)) },
+          { tender: "CARD", amount: cardPart }
+        ];
+      }
+
+      const itemsSnapshot = JSON.parse(JSON.stringify(ticket));
       let orderId = activeOpenTabId;
+
       if (activeOpenTabId) {
+        await routeItemsToPrep(orderId, tabName, itemsSnapshot);
         const { error } = await db.from("orders").update({
           tab_name: tabName,
+          table_code: activeTableCode || tabName,
+          order_mode: activeOrderMode,
+          payment_method: activePaymentMethod,
+          split_payments: splitPayments,
+          cc_tip: ccTipVal,
+          auto_grat: totals.autoGrat,
+          auto_grat_pct: activeAutoGratPct,
+          guest_count_stated: guestCountStated,
+          guest_count_calculated: modelBGuests,
           status: "CLOSED",
           items: itemsSnapshot,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: total,
-          total_retail: subtotal,
-          total_cogs: totalCogs
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          total_amount: totals.total,
+          total_retail: totals.subtotal,
+          total_cogs: totals.totalCogs
         }).eq("id", activeOpenTabId);
-        if (error) return alert("Error closing tab: " + error.message);
+        if (error) {
+          showCarbonToast("Error closing held tab: " + error.message, "error");
+          return;
+        }
       } else {
         const { data, error } = await db.from("orders").insert({
           venue_id: VENUE_ID,
           staff_id: currentUser ? currentUser.id : null,
           tab_name: tabName,
+          table_code: activeTableCode || tabName,
           service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
+          order_mode: activeOrderMode,
+          payment_method: activePaymentMethod,
+          split_payments: splitPayments,
+          cc_tip: ccTipVal,
+          auto_grat: totals.autoGrat,
+          auto_grat_pct: activeAutoGratPct,
           guest_count_stated: guestCountStated,
-          guest_count_calculated: Math.max(1, ticket.length),
+          guest_count_calculated: modelBGuests,
           is_owner_skin: isOwnerSkinActive,
           items: itemsSnapshot,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: total,
-          total_retail: subtotal,
-          total_cogs: totalCogs,
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          total_amount: totals.total,
+          total_retail: totals.subtotal,
+          total_cogs: totals.totalCogs,
           status: "CLOSED"
         }).select().single();
-        if (error) return alert("Error pushing check: " + error.message);
+        if (error) {
+          showCarbonToast("Error closing check: " + error.message, "error");
+          return;
+        }
         orderId = data.id;
         await routeItemsToPrep(orderId, tabName, itemsSnapshot);
       }
 
-      // AUTO-CLAIM CC TIP DIRECTLY TO STAFF SHIFT
-      if (ccTipVal > 0 && currentUser) {
+      // Silent Background Liquor Ounce + Micro-Packaging Depletion
+      await runSilentMicroDepletion(orderId, itemsSnapshot, activeOrderMode, guestCountStated, modelBGuests);
+
+      // Auto-Claim Card Tip + Auto-Gratuity Directly Into Staff Timeclock Shift
+      const autoClaimedTipTotal = ccTipVal + (activePaymentMethod !== "CASH" ? totals.autoGrat : 0);
+      if (autoClaimedTipTotal > 0 && currentUser) {
         if (!activeShiftRecord) {
           const { data: newShift } = await db.from("timeclock_shifts").insert({
             venue_id: VENUE_ID,
@@ -1144,14 +2122,17 @@
             staff_name: currentUser.full_name,
             role_tier: currentUser.role_tier || currentUser.role || "Staff",
             hourly_rate: Number(currentUser.hourly_rate || 0),
-            cc_tips: ccTipVal,
+            cc_tips: autoClaimedTipTotal,
+            auto_grat_tips: totals.autoGrat,
             status: "ACTIVE"
           }).select().single();
           activeShiftRecord = newShift || null;
         } else {
-          const updatedCc = Number(activeShiftRecord.cc_tips || 0) + ccTipVal;
-          await db.from("timeclock_shifts").update({ cc_tips: updatedCc }).eq("id", activeShiftRecord.id);
+          const updatedCc = Number(activeShiftRecord.cc_tips || 0) + autoClaimedTipTotal;
+          const updatedGrat = Number(activeShiftRecord.auto_grat_tips || 0) + totals.autoGrat;
+          await db.from("timeclock_shifts").update({ cc_tips: updatedCc, auto_grat_tips: updatedGrat }).eq("id", activeShiftRecord.id);
           activeShiftRecord.cc_tips = updatedCc;
+          activeShiftRecord.auto_grat_tips = updatedGrat;
         }
         updateShiftBadge();
       }
@@ -1160,27 +2141,48 @@
         await db.from("governance_audits").insert({
           venue_id: VENUE_ID,
           audit_type: "OWNER_SKIN_CONSUMPTION",
+          action_type: "OWNER_SKIN_CONSUMPTION",
           severity: "INFO",
-          summary: "Owner Skin Ticket (" + fmt(total) + " at COGS) logged by " + currentUser.full_name
+          requested_by: currentUser.full_name,
+          approved_by: currentUser.full_name,
+          approver_tier: "Owner",
+          amount_affected: totals.total,
+          ticket_snapshot: itemsSnapshot,
+          summary: "Owner Skin Ticket (" + fmt(totals.total) + " at COGS) logged by " + currentUser.full_name
         });
       }
 
+      const closedMethod = activePaymentMethod;
       ticket = [];
       activeOpenTabId = null;
+      activeTableCode = "";
       document.getElementById("ticket-cc-tip").value = "";
+      document.getElementById("split-cash-amt").value = "";
+      document.getElementById("split-card-amt").value = "";
       document.getElementById("active-tab-name").value = "";
       document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      setAutoGratPct(0);
+      setOrderMode("DINE_IN");
+      setPaymentMethod("CARD");
       renderTicket();
       await loadOpenTabs();
-      alert("✅ Check Closed (" + fmt(total) + ")" + (ccTipVal > 0 ? " + " + fmt(ccTipVal) + " CC Tip Auto-Claimed!" : "!"));
+      showCarbonToast("✅ Check Closed via " + closedMethod + " (" + fmt(totals.total) + ")" + (autoClaimedTipTotal > 0 ? " • Auto-Claimed " + fmt(autoClaimedTipTotal) : ""), "ok");
     }
-
-    // PILLAR 3: MANAGER OVERRIDES & TIMECLOCK
+    // PILLAR 3: MANAGER OVERRIDES (WITH REAL-TIME $X/$Y TRIPWIRE LOGGING) & TIMECLOCK
     function requestManagerOverride(action) {
       pendingOverrideAction = action;
       document.getElementById("override-action-label").textContent = action;
       document.getElementById("override-pin-input").value = "";
+      document.getElementById("override-comp-amount").value = "";
+      document.getElementById("override-comp-wrap").classList.toggle("hidden", action !== "COMP_DISC");
       document.getElementById("override-transfer-wrap").classList.toggle("hidden", action !== "TRANSFER_CHECK");
+
+      if (action === "TRANSFER_CHECK") {
+        const sel = document.getElementById("override-transfer-select");
+        sel.innerHTML = staffList.map(function(s) {
+          return '<option value="' + s.id + '">' + s.full_name + ' (' + (s.role_tier || s.role) + ')</option>';
+        }).join("");
+      }
       document.getElementById("override-modal").classList.remove("hidden");
     }
 
@@ -1194,17 +2196,35 @@
       const pinVal = document.getElementById("override-pin-input").value.trim();
       const approver = isBio
         ? staffList.find(function(s) { return OVERRIDE_TIERS.includes(s.role_tier || s.role); })
-        : staffList.find(function(s) { return s.pin_code === pinVal && OVERRIDE_TIERS.includes(s.role_tier || s.role); });
+        : staffList.find(function(s) { return String(s.pin_code) === String(pinVal) && OVERRIDE_TIERS.includes(s.role_tier || s.role); });
 
-      if (!approver) return alert("❌ Invalid Manager / Admin / Owner PIN.");
+      if (!approver) {
+        showCarbonToast("❌ Invalid Manager / Admin / Owner PIN.", "error");
+        return;
+      }
 
-      const affectedAmt = ticket.reduce(function(s, i) { return s + Number(i.price || 0) * Number(i.qty || 1); }, 0);
-      await db.from("governance_audits").insert({
+      const fullSub = ticket.reduce(function(s, i) { return s + Number(i.price || 0) * Number(i.qty || 1); }, 0);
+      const customComp = parseFloat(document.getElementById("override-comp-amount").value || "0");
+      const affectedAmt = (pendingOverrideAction === "COMP_DISC" && customComp > 0 && customComp < fullSub)
+        ? customComp
+        : fullSub;
+      const snapshot = JSON.parse(JSON.stringify(ticket));
+
+      // Inserting into governance_audits automatically fires SQL trigger trg_comp_void_breaker
+      const { error: audErr } = await db.from("governance_audits").insert({
         venue_id: VENUE_ID,
         audit_type: pendingOverrideAction,
-        severity: "WARNING",
-        summary: pendingOverrideAction + " (" + fmt(affectedAmt) + ") by " + (currentUser ? currentUser.full_name : "Staff") + " • Approved by " + approver.full_name + " — " + reason
+        action_type: pendingOverrideAction,
+        severity: affectedAmt >= 50 ? "CRITICAL" : "WARNING",
+        requested_by: currentUser ? currentUser.full_name : "Staff",
+        approved_by: approver.full_name,
+        approver_tier: approver.role_tier || approver.role || "Manager",
+        reason: reason,
+        amount_affected: affectedAmt,
+        ticket_snapshot: snapshot,
+        summary: pendingOverrideAction + " (" + fmt(affectedAmt) + ") requested by " + (currentUser ? currentUser.full_name : "Staff") + " • Approved by " + approver.full_name + " — " + reason
       });
+      if (audErr) showCarbonToast("Audit log warning: " + audErr.message, "warn");
 
       if (pendingOverrideAction === "VOID_TICKET") {
         if (activeOpenTabId) {
@@ -1214,19 +2234,31 @@
         }
         ticket = [];
         renderTicket();
-      } else if (pendingOverrideAction === "COMP_ITEM" && ticket.length) {
-        ticket = ticket.map(function(i) { return Object.assign({}, i, { price: 0 }); });
+      } else if (pendingOverrideAction === "COMP_DISC" && ticket.length) {
+        if (customComp > 0 && customComp < fullSub) {
+          const ratio = Math.max(0, (fullSub - customComp) / fullSub);
+          ticket = ticket.map(function(i) { return Object.assign({}, i, { price: Number((Number(i.price || 0) * ratio).toFixed(2)) }); });
+        } else {
+          ticket = ticket.map(function(i) { return Object.assign({}, i, { price: 0 }); });
+        }
         renderTicket();
       } else if (pendingOverrideAction === "TRANSFER_CHECK") {
-        const targetStaff = document.getElementById("override-transfer-input").value.trim() || "Transferred";
-        const baseName = document.getElementById("ticket-tab-name").value || "Tab";
-        document.getElementById("ticket-tab-name").value = baseName + " (" + targetStaff + ")";
-        document.getElementById("active-tab-name").value = baseName + " (" + targetStaff + ")";
+        const targetId = document.getElementById("override-transfer-select").value;
+        const targetStaff = staffList.find(function(s) { return s.id === targetId; });
+        if (activeOpenTabId && targetStaff) {
+          await db.from("orders").update({ staff_id: targetStaff.id }).eq("id", activeOpenTabId);
+          await loadOpenTabs();
+        }
+        if (targetStaff) {
+          const baseName = document.getElementById("ticket-tab-name").value || "Tab";
+          document.getElementById("ticket-tab-name").value = baseName;
+          showCarbonToast("🔄 Check transferred to " + targetStaff.full_name, "ok");
+        }
       }
 
       closeOverrideModal();
       await loadTimeclockAndAudits();
-      alert("🛡️ " + "Override approved & logged under " + approver.full_name);
+      showCarbonToast("🛡️ Override approved & logged under " + approver.full_name, "ok");
     }
 
     async function loadTimeclockAndAudits() {
@@ -1263,7 +2295,7 @@
         auditBox.innerHTML = (audits && audits.length)
           ? audits.map(function(a) {
               const t = a.created_at ? new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
-              const label = a.audit_type || a.action_type || "AUDIT";
+              const label = a.action_type || a.audit_type || "AUDIT";
               const desc = a.summary || ((a.requested_by || "") + " • Approved: " + (a.approved_by || "") + " — " + (a.reason || ""));
               return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">' +
                 '<div class="flex justify-between font-bold"><span class="text-rose-400">' + label + '</span><span class="text-slate-400">' + t + '</span></div>' +
@@ -1293,8 +2325,8 @@
     }
 
     async function clockInStaff() {
-      if (!currentUser) return alert("Log in first.");
-      if (activeShiftRecord) return alert("You are already clocked in!");
+      if (!currentUser) return showCarbonToast("Log in first.", "warn");
+      if (activeShiftRecord) return showCarbonToast("You are already clocked in!", "warn");
       const { data, error } = await db.from("timeclock_shifts").insert({
         venue_id: VENUE_ID,
         staff_id: currentUser.id,
@@ -1303,15 +2335,15 @@
         hourly_rate: Number(currentUser.hourly_rate || 0),
         status: "ACTIVE"
       }).select().single();
-      if (error) return alert("Clock-in error: " + error.message);
+      if (error) return showCarbonToast("Clock-in error: " + error.message, "error");
       activeShiftRecord = data;
       await loadTimeclockAndAudits();
-      alert("✅ " + currentUser.full_name + " clocked in!");
+      showCarbonToast("✅ " + currentUser.full_name + " clocked in!", "ok");
     }
 
     async function clockOutStaff() {
-      if (!currentUser) return alert("Log in first.");
-      if (!activeShiftRecord) return alert("No active shift found to clock out.");
+      if (!currentUser) return showCarbonToast("Log in first.", "warn");
+      if (!activeShiftRecord) return showCarbonToast("No active shift found to clock out.", "warn");
       const cash_tips = Math.max(0, parseFloat(document.getElementById("declare-cash-tips").value || "0"));
       const cc_tips = Number(activeShiftRecord.cc_tips || 0);
       const { error } = await db.from("timeclock_shifts").update({
@@ -1320,19 +2352,332 @@
         cc_tips: cc_tips,
         status: "COMPLETED"
       }).eq("id", activeShiftRecord.id);
-      if (error) return alert("Clock-out error: " + error.message);
+      if (error) return showCarbonToast("Clock-out error: " + error.message, "error");
       document.getElementById("declare-cash-tips").value = "";
       activeShiftRecord = null;
       await loadTimeclockAndAudits();
-      alert("✅ Shift closed! Cash Tips: " + fmt(cash_tips) + " | Auto-Claimed CC Tips: " + fmt(cc_tips));
+      showCarbonToast("✅ Shift closed! Cash Tips: " + fmt(cash_tips) + " | Auto-Claimed CC Tips: " + fmt(cc_tips), "ok");
     }
 
-    function triggerPageManager() {
+    async function triggerPageManager() {
       const who = currentUser ? currentUser.full_name : "Terminal";
-      alert("📟 Alert dispatched to Manager on Duty: '" + who + " needs assistance at Carbon Terminal.'");
+      await db.from("governance_audits").insert({
+        venue_id: VENUE_ID,
+        audit_type: "PAGE_MOD",
+        action_type: "PAGE_MOD",
+        severity: "INFO",
+        requested_by: who,
+        summary: "MOD Paged to Carbon Terminal by " + who
+      });
+      showCarbonToast("📟 Alert dispatched to Manager on Duty from " + who + "!", "ok");
     }
 
-    // MENU & STAFF PROVISIONING + INLINE PRICE/COGS EDITOR
+    // MENU & STAFF PROVISIONING + 4-TAB UNIVERSAL MASS IMPORTER
+    let activeImporterTab = "MENU";
+    let activeImporterSubmode = "MODIFIERS";
+    let parsedBulkRows = [];
+
+    function setImporterTab(tab) {
+      activeImporterTab = tab;
+      parsedBulkRows = [];
+      document.getElementById("bulk-preview-box").classList.add("hidden");
+
+      ["MENU", "LIQUOR", "DRY_GOODS", "MODS_STAFF"].forEach(function(t) {
+        const b = document.getElementById("imp-tab-" + t);
+        if (!b) return;
+        b.className = t === tab
+          ? "py-2 px-3 rounded-xl text-xs font-black bg-sky-500 text-slate-950"
+          : "py-2 px-3 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700";
+      });
+
+      const subWrap = document.getElementById("imp-submode-wrap");
+      if (tab === "MODS_STAFF") {
+        subWrap.classList.remove("hidden");
+        subWrap.classList.add("flex");
+      } else {
+        subWrap.classList.add("hidden");
+        subWrap.classList.remove("flex");
+      }
+      updateImporterHint();
+    }
+
+    function setImporterSubmode(sub) {
+      activeImporterSubmode = sub;
+      parsedBulkRows = [];
+      document.getElementById("bulk-preview-box").classList.add("hidden");
+      document.getElementById("imp-sub-MODIFIERS").className = sub === "MODIFIERS"
+        ? "px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black"
+        : "px-3 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 font-bold";
+      document.getElementById("imp-sub-STAFF").className = sub === "STAFF"
+        ? "px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black"
+        : "px-3 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 font-bold";
+      updateImporterHint();
+    }
+
+    function updateImporterHint() {
+      const hint = document.getElementById("imp-columns-hint");
+      if (activeImporterTab === "MENU") {
+        hint.textContent = "Columns: name, department (BAR/FOOD), category (SPIRITS/COCKTAILS/KITCHEN/VIP SERVICE), price, wholesale_cogs, priority, liquor_bottle_name, pour_oz, modifier_group";
+      } else if (activeImporterTab === "LIQUOR") {
+        hint.textContent = "Columns: bottle_name, spirit_category, bottle_size_label (750ML / 1L / 1.75L), bottles_on_hand, par_bottles, bottle_wholesale_cost";
+      } else if (activeImporterTab === "DRY_GOODS") {
+        hint.textContent = "Columns: item_name, sku_code, category (BAR_DISPOSABLE / BOH_PACKAGING / TO_GO_PACKAGING), unit_type, on_hand_qty, par_level, unit_cogs";
+      } else if (activeImporterSubmode === "MODIFIERS") {
+        hint.textContent = "Columns: group_name, department (BAR/FOOD/VIP), option_name, upcharge_price, extra_cogs, pour_mult (1 or 2), extra_ramekin (0 or 1)";
+      } else {
+        hint.textContent = "Columns: full_name, role_tier (Bartender/Server/Manager/Admin/Owner), custom_title, pin_code (4 digits), hourly_rate";
+      }
+    }
+
+    function downloadBulkTemplate() {
+      let csv = "";
+      let filename = "carbon_template.csv";
+      if (activeImporterTab === "MENU") {
+        filename = "carbon_menu_cogs_template.csv";
+        csv = "name,department,category,price,wholesale_cogs,priority,liquor_bottle_name,pour_oz,modifier_group\n" +
+              "Casamigos Reposado (1.5oz),BAR,SPIRITS,16.00,2.85,1,Casamigos Reposado 1L,1.5,Spirits & Cocktails Prep\n" +
+              "10pc Lemon Pepper Wings,FOOD,KITCHEN,18.00,4.10,2,,0,Wings Sauce & Style\n" +
+              "Wagyu Smashburger,FOOD,KITCHEN,21.00,4.65,3,,0,Burgers, Steaks & Lamb Chops\n" +
+              "Birria Street Tacos (3),FOOD,KITCHEN,17.00,3.80,4,,0,Street Tacos & Quesadillas\n" +
+              "VIP Bottle: Don Julio 1942,BAR,VIP SERVICE,450.00,148.00,5,Don Julio 1942 750ML,25.36,VIP Bottle Service Presentation\n";
+      } else if (activeImporterTab === "LIQUOR") {
+        filename = "carbon_liquor_backbar_template.csv";
+        csv = "bottle_name,spirit_category,bottle_size_label,bottles_on_hand,par_bottles,bottle_wholesale_cost\n" +
+              "Casamigos Reposado 1L,TEQUILA,1L,12,4,64.00\n" +
+              "Titos Handmade Vodka 1L,VODKA,1L,18,6,26.50\n" +
+              "Don Julio 1942 750ML,VIP_TEQUILA,750ML,6,2,148.00\n";
+      } else if (activeImporterTab === "DRY_GOODS") {
+        filename = "carbon_dry_goods_packaging_template.csv";
+        csv = "item_name,sku_code,category,unit_type,on_hand_qty,par_level,unit_cogs\n" +
+              "12oz Rocks Cup,CUP_12OZ_ROCKS,BAR_DISPOSABLE,each,1200,300,0.085\n" +
+              "2oz Souffle Ramekin,RAMEKIN_2OZ,BOH_PACKAGING,each,1000,250,0.035\n" +
+              "2oz Ramekin Lid,RAMEKIN_LID_2OZ,BOH_PACKAGING,each,1000,250,0.025\n" +
+              "Hinged To-Go Container,TOGO_HINGED_BOX,TO_GO_PACKAGING,each,600,150,0.340\n";
+      } else if (activeImporterSubmode === "MODIFIERS") {
+        filename = "carbon_modifiers_template.csv";
+        csv = "group_name,department,option_name,upcharge_price,extra_cogs,pour_mult,extra_ramekin\n" +
+              "Spirits & Cocktails Prep,BAR,Make It a Double (2x Pour),6.00,2.25,2,0\n" +
+              "Wings Sauce & Style,FOOD,Extra Side Sauce (2oz Cup+Lid),1.00,0.31,1,1\n";
+      } else {
+        filename = "carbon_staff_roster_template.csv";
+        csv = "full_name,role_tier,custom_title,pin_code,hourly_rate\n" +
+              "Jordan Banks,Bartender,Lead Mixologist,5511,15.00\n" +
+              "kayla Vance,Server,VIP Floor Server,5522,12.00\n";
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    }
+
+    function handleBulkFileSelect(evt) {
+      const file = evt.target.files && evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById("bulk-paste-input").value = e.target.result || "";
+        previewBulkImport();
+      };
+      reader.readAsText(file);
+    }
+
+    function parseUniversalTabularInput(raw) {
+      const trimmed = (raw || "").trim();
+      if (!trimmed) return [];
+
+      // Support HTML <table> exports from POS / Vendor sheets
+      if (trimmed.toLowerCase().indexOf("<table") !== -1 || trimmed.toLowerCase().indexOf("<tr") !== -1) {
+        const doc = new DOMParser().parseFromString(trimmed, "text/html");
+        const trs = Array.from(doc.querySelectorAll("tr"));
+        const matrix = trs.map(function(tr) {
+          return Array.from(tr.querySelectorAll("th,td")).map(function(c) { return c.textContent.trim(); });
+        }).filter(function(r) { return r.length > 0; });
+        return matrixToObjects(matrix);
+      }
+
+      const lines = trimmed.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+      if (!lines.length) return [];
+      const delimiter = lines[0].indexOf("\t") !== -1 ? "\t" : ",";
+      const matrix = lines.map(function(line) {
+        return splitDelimitedLine(line, delimiter);
+      });
+      return matrixToObjects(matrix);
+    }
+
+    function splitDelimitedLine(line, delim) {
+      const out = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          inQuotes = !inQuotes;
+        } else if (ch === delim && !inQuotes) {
+          out.push(cur.trim());
+          cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur.trim());
+      return out;
+    }
+
+    function matrixToObjects(matrix) {
+      if (matrix.length < 2) return [];
+      const headers = matrix[0].map(function(h) {
+        return h.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+      });
+      return matrix.slice(1).map(function(row) {
+        const obj = {};
+        headers.forEach(function(h, idx) { obj[h] = row[idx] !== undefined ? row[idx] : ""; });
+        return obj;
+      });
+    }
+
+    function previewBulkImport() {
+      const raw = document.getElementById("bulk-paste-input").value;
+      parsedBulkRows = parseUniversalTabularInput(raw);
+      const box = document.getElementById("bulk-preview-box");
+      box.classList.remove("hidden");
+
+      if (!parsedBulkRows.length) {
+        box.innerHTML = '<div class="text-rose-400 font-bold">No valid data rows detected. Include a header row + at least 1 data row.</div>';
+        return;
+      }
+
+      const cols = Object.keys(parsedBulkRows[0]);
+      const sample = parsedBulkRows.slice(0, 8);
+      box.innerHTML =
+        '<div class="text-emerald-400 font-black">✓ Parsed ' + parsedBulkRows.length + ' row(s) ready to sync into ' + activeImporterTab + '</div>' +
+        '<table class="w-full text-left border-collapse mt-2">' +
+          '<thead><tr class="border-b border-slate-800 text-slate-400">' +
+            cols.map(function(c) { return '<th class="py-1 pr-3 uppercase text-[10px]">' + c + '</th>'; }).join("") +
+          '</tr></thead>' +
+          '<tbody>' +
+            sample.map(function(r) {
+              return '<tr class="border-b border-slate-900 text-slate-200">' +
+                cols.map(function(c) { return '<td class="py-1 pr-3">' + (r[c] || "") + '</td>'; }).join("") +
+              '</tr>';
+            }).join("") +
+          '</tbody>' +
+        '</table>';
+    }
+
+    async function commitBulkImport() {
+      if (!parsedBulkRows.length) previewBulkImport();
+      if (!parsedBulkRows.length) return;
+
+      try {
+        if (activeImporterTab === "MENU") {
+          for (const r of parsedBulkRows) {
+            const name = (r.name || r.item_name || "").trim();
+            if (!name) continue;
+            const cat = (r.category || "SPIRITS").toUpperCase();
+            const dept = (r.department || (cat === "KITCHEN" || cat === "FOOD" ? "FOOD" : "BAR")).toUpperCase();
+            const payload = {
+              venue_id: VENUE_ID,
+              name: name,
+              department: dept,
+              category: cat,
+              price: parseFloat(r.price || r.retail_price || "0") || 0,
+              wholesale_cogs: parseFloat(r.wholesale_cogs || r.cogs || "0") || 0,
+              speed_screen_priority: parseInt(r.priority || "10") || 10,
+              liquor_bottle_name: r.liquor_bottle_name || "",
+              pour_oz: parseFloat(r.pour_oz || (dept === "BAR" ? "1.5" : "0")) || 0,
+              modifier_group_names: r.modifier_group ? [r.modifier_group] : []
+            };
+            const existing = menuItems.find(function(m) { return m.name.toLowerCase() === name.toLowerCase(); });
+            if (existing) {
+              await db.from("menu_items").update(payload).eq("id", existing.id);
+            } else {
+              await db.from("menu_items").insert(payload);
+            }
+          }
+        } else if (activeImporterTab === "LIQUOR") {
+          const rows = parsedBulkRows.filter(function(r) { return (r.bottle_name || r.name); }).map(function(r) {
+            const sizeLbl = (r.bottle_size_label || r.size || "1L").toUpperCase();
+            const oz = sizeLbl === "750ML" ? 25.36 : (sizeLbl === "1.75L" ? 59.17 : 33.81);
+            const btls = parseFloat(r.bottles_on_hand || "0") || 0;
+            return {
+              venue_id: VENUE_ID,
+              bottle_name: (r.bottle_name || r.name).trim(),
+              spirit_category: (r.spirit_category || r.category || "SPIRITS").toUpperCase(),
+              bottle_size_label: sizeLbl,
+              bottle_size_oz: oz,
+              bottles_on_hand: btls,
+              total_oz_on_hand: Number((btls * oz).toFixed(2)),
+              par_bottles: parseFloat(r.par_bottles || r.par || "0") || 0,
+              bottle_wholesale_cost: parseFloat(r.bottle_wholesale_cost || r.cost || "0") || 0
+            };
+          });
+          if (rows.length) await db.from("liquor_inventory").insert(rows);
+        } else if (activeImporterTab === "DRY_GOODS") {
+          const rows = parsedBulkRows.filter(function(r) { return (r.item_name || r.name); }).map(function(r) {
+            return {
+              venue_id: VENUE_ID,
+              item_name: (r.item_name || r.name).trim(),
+              sku_code: (r.sku_code || "").trim(),
+              category: (r.category || "DRY_GOODS").toUpperCase(),
+              unit_type: r.unit_type || r.unit || "each",
+              on_hand_qty: parseFloat(r.on_hand_qty || r.qty || "0") || 0,
+              par_level: parseFloat(r.par_level || r.par || "0") || 0,
+              unit_cogs: parseFloat(r.unit_cogs || r.cogs || "0") || 0
+            };
+          });
+          if (rows.length) await db.from("dry_goods_inventory").insert(rows);
+        } else if (activeImporterSubmode === "MODIFIERS") {
+          const grouped = {};
+          parsedBulkRows.forEach(function(r) {
+            const gName = (r.group_name || "").trim();
+            const oName = (r.option_name || r.modifier_name || "").trim();
+            if (!gName || !oName) return;
+            if (!grouped[gName]) grouped[gName] = { department: (r.department || "BAR").toUpperCase(), options: [] };
+            grouped[gName].options.push({
+              name: oName,
+              price: parseFloat(r.upcharge_price || r.price || "0") || 0,
+              cogs: parseFloat(r.extra_cogs || r.cogs || "0") || 0,
+              pour_mult: parseFloat(r.pour_mult || "1") || 1,
+              extra_ramekin: parseInt(r.extra_ramekin || "0") || 0
+            });
+          });
+          for (const gName of Object.keys(grouped)) {
+            await db.from("modifier_groups").insert({
+              venue_id: VENUE_ID,
+              group_name: gName,
+              department: grouped[gName].department,
+              options: grouped[gName].options
+            });
+          }
+        } else {
+          const rows = parsedBulkRows.filter(function(r) { return r.full_name && r.pin_code; }).map(function(r) {
+            const tier = r.role_tier || r.role || "Bartender";
+            return {
+              venue_id: VENUE_ID,
+              full_name: r.full_name.trim(),
+              role: tier,
+              role_tier: tier,
+              custom_title: r.custom_title || "",
+              pin_code: String(r.pin_code).trim(),
+              hourly_rate: parseFloat(r.hourly_rate || "15") || 15
+            };
+          });
+          if (rows.length) await db.from("staff_users").insert(rows);
+        }
+
+        document.getElementById("bulk-paste-input").value = "";
+        document.getElementById("bulk-preview-box").classList.add("hidden");
+        const count = parsedBulkRows.length;
+        parsedBulkRows = [];
+        await initCarbonOS();
+        showCarbonToast("✅ Bulk synced " + count + " row(s) live into Supabase!", "ok");
+      } catch (err) {
+        showCarbonToast("Bulk import error: " + (err.message || err), "error");
+      }
+    }
+
     function update86Ticker() {
       const out = menuItems.filter(function(m) { return m.is_86d; }).map(function(m) { return m.name; });
       document.getElementById("eighty-six-ticker").textContent = out.length ? out.join(" • ") : "All items in stock";
@@ -1348,7 +2693,7 @@
         row.innerHTML =
           '<div>' +
             '<span class="font-black text-white text-sm">' + item.name + '</span>' +
-            '<span class="ml-2 px-2 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] font-bold uppercase">' + (item.category || "BAR") + '</span>' +
+            '<span class="ml-2 px-2 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] font-bold uppercase">' + (item.department || "BAR") + " • " + (item.category || "SPIRITS") + '</span>' +
           '</div>' +
           '<div class="flex flex-wrap items-center gap-2">' +
             '<label class="text-slate-400">Price:</label>' +
@@ -1368,12 +2713,12 @@
       const price = parseFloat(document.getElementById("edit-price-" + itemId).value || "0");
       const wholesale_cogs = parseFloat(document.getElementById("edit-cogs-" + itemId).value || "0");
       const { error } = await db.from("menu_items").update({ price: price, wholesale_cogs: wholesale_cogs }).eq("id", itemId);
-      if (error) return alert("Error saving item: " + error.message);
+      if (error) return showCarbonToast("Error saving item: " + error.message, "error");
       const target = menuItems.find(function(m) { return m.id === itemId; });
       if (target) { target.price = price; target.wholesale_cogs = wholesale_cogs; }
       renderMenuGrid();
       renderAdminMenuList();
-      alert("✅ Menu item price & COGS updated!");
+      showCarbonToast("✅ Menu item price & COGS updated!", "ok");
     }
 
     function renderAdminStaffList() {
@@ -1388,7 +2733,8 @@
     }
 
     async function toggle86Status(itemId, newState) {
-      await db.from("menu_items").update({ is_86d: newState }).eq("id", itemId);
+      const { error } = await db.from("menu_items").update({ is_86d: newState }).eq("id", itemId);
+      if (error) return showCarbonToast("Error toggling 86 status: " + error.message, "error");
       const target = menuItems.find(function(m) { return m.id === itemId; });
       if (target) target.is_86d = newState;
       update86Ticker();
@@ -1398,29 +2744,49 @@
 
     async function updateDailySpecial() {
       const text = document.getElementById("new-special-input").value;
-      await db.from("venues").update({ daily_special_text: text }).eq("id", VENUE_ID);
+      const { error } = await db.from("venues").update({ daily_special_text: text }).eq("id", VENUE_ID);
+      if (error) return showCarbonToast("Error updating special: " + error.message, "error");
       document.getElementById("daily-special-banner").textContent = text;
-      alert("✅ Daily Special updated across all Carbon Terminals!");
+      showCarbonToast("✅ Daily Special updated across all Carbon Terminals!", "ok");
     }
 
     async function createMenuItem() {
       const name = document.getElementById("add-item-name").value.trim();
       const category = document.getElementById("add-item-cat").value;
+      const modSel = document.getElementById("add-item-modgroup").value;
       const price = parseFloat(document.getElementById("add-item-price").value || "0");
       const wholesale_cogs = parseFloat(document.getElementById("add-item-cogs").value || "0");
+      const bottleName = document.getElementById("add-item-bottle").value.trim();
+      const pourInput = parseFloat(document.getElementById("add-item-pour").value || "0");
       const speed_screen_priority = parseInt(document.getElementById("add-item-priority").value || "10");
-      if (!name) return alert("Enter an item name.");
+
+      if (!name) return showCarbonToast("Enter an item name.", "warn");
+
+      const catUpper = (category || "SPIRITS").toUpperCase();
+      const department = (catUpper === "KITCHEN" || catUpper === "FOOD") ? "FOOD" : "BAR";
+      const pour_oz = pourInput > 0 ? pourInput : (catUpper.indexOf("VIP") !== -1 ? 25.36 : (department === "BAR" && catUpper.indexOf("BEER") === -1 ? 1.5 : 0));
 
       const { data, error } = await db.from("menu_items").insert({
         venue_id: VENUE_ID,
         name: name,
+        department: department,
         category: category,
         price: price,
         wholesale_cogs: wholesale_cogs,
         speed_screen_priority: speed_screen_priority,
-        packaging_recipe: [{ item: "12oz Rocks Cup", qty: 1 }, { item: "Black Bev Nap", qty: 1 }]
+        liquor_bottle_name: bottleName,
+        pour_oz: pour_oz,
+        modifier_group_names: modSel === "AUTO" ? [] : [modSel],
+        packaging_recipe: department === "FOOD"
+          ? [{ item: "Dine-In Food Boat / Liner", sku_code: "DINEIN_FOOD_BOAT", qty: 1, unit_cogs: 0.095 }]
+          : [
+              { item: "12oz Rocks Cup", sku_code: "CUP_12OZ_ROCKS", qty: 1, unit_cogs: 0.085 },
+              { item: "Black Bev Nap", sku_code: "BEV_NAP_BLACK", qty: 1, unit_cogs: 0.018 },
+              { item: "Black Sip Straw", sku_code: "STRAW_SIP_BLACK", qty: 1, unit_cogs: 0.012 }
+            ]
       }).select().single();
-      if (error) return alert("Error adding item: " + error.message);
+
+      if (error) return showCarbonToast("Error adding item: " + error.message, "error");
 
       menuItems.push(data);
       menuItems.sort(function(a, b) { return (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99); });
@@ -1429,7 +2795,9 @@
       document.getElementById("add-item-name").value = "";
       document.getElementById("add-item-price").value = "";
       document.getElementById("add-item-cogs").value = "";
-      alert("✅ '" + name + "' added live to Carbon Terminal!");
+      document.getElementById("add-item-bottle").value = "";
+      document.getElementById("add-item-pour").value = "";
+      showCarbonToast("✅ '" + name + "' (" + department + ") added live to Carbon Terminal!", "ok");
     }
 
     async function createStaffMember() {
@@ -1439,8 +2807,8 @@
       const pin_code = document.getElementById("add-staff-pin").value.trim();
       const hourly_rate = parseFloat(document.getElementById("add-staff-rate").value || "15");
 
-      if (!full_name || pin_code.length !== 4) return alert("Enter full name and a 4-digit PIN.");
-      if (staffList.some(function(s) { return s.pin_code === pin_code; })) return alert("That 4-digit PIN is already assigned.");
+      if (!full_name || pin_code.length !== 4) return showCarbonToast("Enter full name and a 4-digit PIN.", "warn");
+      if (staffList.some(function(s) { return String(s.pin_code) === String(pin_code); })) return showCarbonToast("That 4-digit PIN is already assigned.", "warn");
 
       const { data, error } = await db.from("staff_users").insert({
         venue_id: VENUE_ID,
@@ -1451,325 +2819,57 @@
         pin_code: pin_code,
         hourly_rate: hourly_rate
       }).select().single();
-      if (error) return alert("Error adding employee: " + error.message);
+      if (error) return showCarbonToast("Error adding employee: " + error.message, "error");
 
       staffList.push(data);
       renderAdminStaffList();
       document.getElementById("add-staff-name").value = "";
       document.getElementById("add-staff-title").value = "";
       document.getElementById("add-staff-pin").value = "";
-      alert("✅ " + full_name + " (" + role_tier + ") activated with PIN " + pin_code + "!");
+      showCarbonToast("✅ " + full_name + " (" + role_tier + ") activated with PIN " + pin_code + "!", "ok");
     }
 
-    // PILLAR 4: CARBON EXECUTION ENGINES & EOD Z-REPORT
-    async function loadExecutionEngines() {
-      const [ordRes, shiftRes, auditRes, zRes] = await Promise.all([
-        db.from("orders").select("*").eq("venue_id", VENUE_ID),
-        db.from("timeclock_shifts").select("*").eq("venue_id", VENUE_ID),
-        db.from("governance_audits").select("*").eq("venue_id", VENUE_ID),
-        db.from("eod_reports").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(6)
-      ]);
-
-      const allOrders = ordRes.data || [];
-      const closedOrders = allOrders.filter(function(o) { return (o.status || "CLOSED") === "CLOSED"; });
-      const openOrders = allOrders.filter(function(o) { return o.status === "OPEN"; });
-
-      const grossSales = closedOrders.reduce(function(s, o) { return s + Number(o.total_retail || o.subtotal || o.total_amount || 0); }, 0);
-      const totalCogs = closedOrders.reduce(function(s, o) { return s + Number(o.total_cogs || 0); }, 0);
-      const cogsPct = grossSales > 0 ? (totalCogs / grossSales) * 100 : 0;
-
-      let laborCost = 0;
-      let declaredTips = 0;
-      (shiftRes.data || []).forEach(function(sh) {
-        const start = new Date(sh.clock_in).getTime();
-        const end = sh.clock_out ? new Date(sh.clock_out).getTime() : Date.now();
-        const hrs = Math.max(0, (end - start) / 3600000);
-        laborCost += hrs * Number(sh.hourly_rate || 0);
-        declaredTips += Number(sh.cash_tips || 0) + Number(sh.cc_tips || 0);
-      });
-
-      const voidsCompsCount = (auditRes.data || []).filter(function(a) {
-        const t = a.audit_type || a.action_type || "";
-        return t === "VOID_TICKET" || t === "COMP_ITEM" || t === "COMP_DISC";
-      }).length;
-
-      const netMargin = grossSales - totalCogs - laborCost;
-      latestEngineSnapshot = {
-        gross_sales: grossSales,
-        total_cogs: totalCogs,
-        net_margin: netMargin,
-        cogs_pct: cogsPct,
-        labor_cost: laborCost,
-        declared_tips: declaredTips,
-        voids_comps_total: voidsCompsCount,
-        closed_checks_count: closedOrders.length,
-        open_tabs_carried: openOrders.length
-      };
-
-      document.getElementById("eng-gross-sales").textContent = fmt(grossSales);
-      document.getElementById("eng-checks-count").textContent = closedOrders.length + " closed checks • " + openOrders.length + " open tabs";
-      document.getElementById("eng-total-cogs").textContent = fmt(totalCogs);
-
-      const guardEl = document.getElementById("eng-cogs-guardrail");
-      const healthy = cogsPct <= 18.0;
-      guardEl.textContent = cogsPct.toFixed(1) + "% COGS (" + (healthy ? "✓ WITHIN GUARDRAIL" : "⚠ ABOVE 18% TARGET") + ")";
-      guardEl.className = "text-[11px] font-bold " + (healthy ? "text-emerald-400" : "text-rose-400");
-
-      document.getElementById("eng-labor-cost").textContent = fmt(laborCost);
-      document.getElementById("eng-tips-total").textContent = "Claimed Tips: " + fmt(declaredTips);
-      document.getElementById("eng-net-margin").textContent = fmt(netMargin);
-      document.getElementById("eng-voids-total").textContent = "Override Events: " + voidsCompsCount;
-
-      const itemMap = {};
-      closedOrders.forEach(function(o) {
-        (o.items || []).forEach(function(i) {
-          const key = i.name || "Item";
-          if (!itemMap[key]) itemMap[key] = { name: key, qty: 0, rev: 0, cogs: 0 };
-          const q = Number(i.qty || 1);
-          itemMap[key].qty += q;
-          itemMap[key].rev += Number(i.price || 0) * q;
-          itemMap[key].cogs += Number(i.cogs || i.wholesale_cogs || 0) * q;
-        });
-      });
-
-      const topItems = Object.values(itemMap).sort(function(a, b) { return b.rev - a.rev; }).slice(0, 6);
-      document.getElementById("eng-top-items").innerHTML = topItems.length
-        ? topItems.map(function(it) {
-            const mPct = it.rev > 0 ? (((it.rev - it.cogs) / it.rev) * 100).toFixed(0) : 100;
-            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">' +
-              '<div><span class="font-bold text-white">' + it.qty + "x " + it.name + '</span><span class="text-[11px] text-slate-400 ml-2">COGS: ' + fmt(it.cogs) + '</span></div>' +
-              '<div><span class="font-black text-emerald-400">' + fmt(it.rev) + '</span><span class="text-[10px] text-slate-400 ml-1.5">(' + mPct + '% margin)</span></div></div>';
-          }).join("")
-        : '<p class="text-slate-500">Close checks on the register to populate live product telemetry.</p>';
-
-      const zReports = zRes.data || [];
-      document.getElementById("eng-eod-history").innerHTML = zReports.length
-        ? zReports.map(function(z) {
-            const dt = z.created_at ? new Date(z.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">' +
-              '<div class="flex justify-between font-bold"><span class="text-emerald-400">Z-Report • ' + dt + '</span><span class="text-white">Sales: ' + fmt(z.gross_sales) + '</span></div>' +
-              '<div class="text-[11px] text-slate-400">COGS: ' + Number(z.cogs_pct || 0).toFixed(1) + "% • Net: " + fmt(z.net_margin) + " • Closed by " + z.closed_by + '</div></div>';
-          }).join("")
-        : '<p class="text-slate-500">No EOD Z-Reports closed yet.</p>';
+    // PILLAR 4: EXECUTION ENGINES, PAYWALL CARTRIDGE DOCK, ALERT CONTROLS & EOD Z-REPORT
+    function populateAlertSettingsForm() {
+      if (!venueAlertSettings) return;
+      document.getElementById("alert-pulse-enabled").checked = Boolean(venueAlertSettings.hourly_pulse_enabled);
+      document.getElementById("alert-win-start").value = String(venueAlertSettings.active_window_start || "16:00").slice(0, 5);
+      document.getElementById("alert-win-end").value = String(venueAlertSettings.active_window_end || "03:00").slice(0, 5);
+      document.getElementById("alert-single-limit").value = Number(venueAlertSettings.single_override_limit || 50);
+      document.getElementById("alert-shift-ceiling").value = Number(venueAlertSettings.shift_override_ceiling || 250);
+      document.getElementById("alert-channel").value = venueAlertSettings.alert_channel || "BOTH";
+      document.getElementById("alert-phones").value = venueAlertSettings.recipient_phones || "";
+      document.getElementById("alert-emails").value = venueAlertSettings.recipient_emails || "";
+      document.getElementById("alert-webhook").value = venueAlertSettings.webhook_url || "";
     }
 
-    async function runNightlyEodCloseout() {
-      if (!currentUser) return alert("Log in first.");
-      if (!latestEngineSnapshot) await loadExecutionEngines();
-      const warn = latestEngineSnapshot.open_tabs_carried > 0
-        ? "\nWARNING: " + latestEngineSnapshot.open_tabs_carried + " open tab(s) still unclosed."
-        : "";
-      const notes = prompt(
-        "RUN NIGHTLY EOD Z-REPORT\nGross Sales: " + fmt(latestEngineSnapshot.gross_sales) +
-        " | COGS: " + latestEngineSnapshot.cogs_pct.toFixed(1) + "% | Net: " + fmt(latestEngineSnapshot.net_margin) +
-        warn + "\n\nEnter optional EOD manager notes:"
-      );
-      if (notes === null) return;
-
-      const { error } = await db.from("eod_reports").insert(Object.assign({
+    async function saveVenueAlertSettings() {
+      const payload = {
         venue_id: VENUE_ID,
-        closed_by: currentUser.full_name,
-        closed_by_tier: currentUser.role_tier || currentUser.role || "Owner",
-        notes: notes.trim() || "Standard nightly batch closeout"
-      }, latestEngineSnapshot));
+        hourly_pulse_enabled: document.getElementById("alert-pulse-enabled").checked,
+        active_window_start: document.getElementById("alert-win-start").value + ":00",
+        active_window_end: document.getElementById("alert-win-end").value + ":00",
+        single_override_limit: parseFloat(document.getElementById("alert-single-limit").value || "50"),
+        shift_override_ceiling: parseFloat(document.getElementById("alert-shift-ceiling").value || "250"),
+        alert_channel: document.getElementById("alert-channel").value,
+        recipient_phones: document.getElementById("alert-phones").value.trim(),
+        recipient_emails: document.getElementById("alert-emails").value.trim(),
+        webhook_url: document.getElementById("alert-webhook").value.trim(),
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await db.from("venue_alert_settings").upsert(payload, { onConflict: "venue_id" }).select().single();
+      if (error) return showCarbonToast("Error saving alert rules: " + error.message, "error");
+      venueAlertSettings = data;
+      showCarbonToast("✅ Hourly Sales Pulse & Comp/Void Tripwire thresholds saved!", "ok");
+    }
 
-      if (error) return alert("EOD Z-Report error: " + error.message);
+    async function fireManualHourlyPulse() {
+      const { data, error } = await db.rpc("cmd_hourly_pulse_dispatch", { p_venue_id: VENUE_ID, p_force: true });
+      if (error) return showCarbonToast("Hourly pulse RPC error: " + error.message, "error");
+      if (data) await dispatchWebhookIfConfigured(data);
       await loadExecutionEngines();
-      alert("✅ Nightly EOD Z-Report locked and archived to Supabase!");
+      showCarbonToast("📡 Hourly Sales Pulse generated & logged!", "ok");
     }
-    // =========================================================================
-    // CATEGORY FILTER ENGINE (ALL / BAR / KITCHEN / VIP)
-    // =========================================================================
-    let activeMenuCategory = "ALL";
-
-    function setMenuCategory(cat) {
-      activeMenuCategory = cat;
-      ["ALL", "BAR", "KITCHEN", "VIP"].forEach(function(c) {
-        const btn = document.getElementById("cat-btn-" + c);
-        if (!btn) return;
-        if (c === cat) {
-          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-500 text-slate-950 transition";
-        } else if (c === "KITCHEN") {
-          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition";
-        } else if (c === "VIP") {
-          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-purple-300 border border-purple-500/40 hover:border-purple-400 transition";
-        } else {
-          btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
-        }
-      });
-      renderMenuGrid();
-    }
-
-    const _baseRenderMenuGrid = renderMenuGrid;
-    renderMenuGrid = function() {
-      const fullMenuBackup = menuItems;
-      if (activeMenuCategory !== "ALL") {
-        menuItems = fullMenuBackup.filter(function(item) {
-          const cat = (item.category || "BAR").toUpperCase();
-          if (activeMenuCategory === "KITCHEN") return cat === "KITCHEN" || cat === "FOOD";
-          if (activeMenuCategory === "VIP") return cat.indexOf("VIP") !== -1;
-          if (activeMenuCategory === "BAR") return cat !== "KITCHEN" && cat !== "FOOD" && cat.indexOf("VIP") === -1;
-          return true;
-        });
-      }
-      _baseRenderMenuGrid();
-      menuItems = fullMenuBackup;
-    };
-// =========================================================================
-    // PAYMENT TENDER ENGINE (CARD VS CASH)
-    // =========================================================================
-    let activePaymentMethod = "CARD";
-
-    function setPaymentMethod(method) {
-      activePaymentMethod = method;
-      const btnCard = document.getElementById("pay-btn-CARD");
-      const btnCash = document.getElementById("pay-btn-CASH");
-      const ccRow = document.getElementById("cc-tip-row");
-      const ccInput = document.getElementById("ticket-cc-tip");
-
-      if (method === "CASH") {
-        if (btnCash) btnCash.className = "py-2 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 border border-emerald-400 transition";
-        if (btnCard) btnCard.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
-        if (ccRow) ccRow.classList.add("hidden");
-        if (ccInput) ccInput.value = "";
-      } else {
-        if (btnCard) btnCard.className = "py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition";
-        if (btnCash) btnCash.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
-        if (ccRow) ccRow.classList.remove("hidden");
-      }
-    }
-
-    closeAndPushCheck = async function() {
-      if (ticket.length === 0) return alert("Ring at least one item before closing check.");
-
-      const tabName = document.getElementById("active-tab-name").value.trim() || document.getElementById("ticket-tab-name").value.trim() || "Bar Walk-In";
-      const subtotal = ticket.reduce(function(s, i) { return s + (isOwnerSkinActive ? Number(i.cogs || 0) : Number(i.price || 0)) * Number(i.qty || 1); }, 0);
-      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
-      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
-      const total = subtotal + tax;
-      const ccTipVal = activePaymentMethod === "CARD" ? Math.max(0, parseFloat(document.getElementById("ticket-cc-tip").value || "0")) : 0;
-      const itemsSnapshot = JSON.parse(JSON.stringify(ticket));
-
-      let orderId = activeOpenTabId;
-      if (activeOpenTabId) {
-        const { error } = await db.from("orders").update({
-          tab_name: tabName,
-          payment_method: activePaymentMethod,
-          cc_tip: ccTipVal,
-          status: "CLOSED",
-          items: itemsSnapshot,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: total,
-          total_retail: subtotal,
-          total_cogs: totalCogs
-        }).eq("id", activeOpenTabId);
-        if (error) return alert("Error closing tab: " + error.message);
-      } else {
-        const { data, error } = await db.from("orders").insert({
-          venue_id: VENUE_ID,
-          staff_id: currentUser ? currentUser.id : null,
-          tab_name: tabName,
-          service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
-          order_type: "BAR_QUICK",
-          payment_method: activePaymentMethod,
-          cc_tip: ccTipVal,
-          guest_count_stated: guestCountStated,
-          guest_count_calculated: Math.max(1, ticket.length),
-          is_owner_skin: isOwnerSkinActive,
-          items: itemsSnapshot,
-          subtotal: subtotal,
-          tax: tax,
-          total_amount: total,
-          total_retail: subtotal,
-          total_cogs: totalCogs,
-          status: "CLOSED"
-        }).select().single();
-        if (error) return alert("Error pushing check: " + error.message);
-        orderId = data.id;
-        await routeItemsToPrep(orderId, tabName, itemsSnapshot);
-      }
-
-      if (ccTipVal > 0 && currentUser) {
-        if (!activeShiftRecord) {
-          const { data: newShift } = await db.from("timeclock_shifts").insert({
-            venue_id: VENUE_ID,
-            staff_id: currentUser.id,
-            staff_name: currentUser.full_name,
-            role_tier: currentUser.role_tier || currentUser.role || "Staff",
-            hourly_rate: Number(currentUser.hourly_rate || 0),
-            cc_tips: ccTipVal,
-            status: "ACTIVE"
-          }).select().single();
-          activeShiftRecord = newShift || null;
-        } else {
-          const updatedCc = Number(activeShiftRecord.cc_tips || 0) + ccTipVal;
-          await db.from("timeclock_shifts").update({ cc_tips: updatedCc }).eq("id", activeShiftRecord.id);
-          activeShiftRecord.cc_tips = updatedCc;
-        }
-        updateShiftBadge();
-      }
-
-      if (isOwnerSkinActive && currentUser) {
-        await db.from("governance_audits").insert({
-          venue_id: VENUE_ID,
-          audit_type: "OWNER_SKIN_CONSUMPTION",
-          severity: "INFO",
-          summary: "Owner Skin Ticket (" + fmt(total) + " at COGS) logged by " + currentUser.full_name
-        });
-      }
-
-      const closedMethod = activePaymentMethod;
-      ticket = [];
-      activeOpenTabId = null;
-      document.getElementById("ticket-cc-tip").value = "";
-      document.getElementById("active-tab-name").value = "";
-      document.getElementById("ticket-tab-name").value = "Bar Walk-In";
-      setPaymentMethod("CARD");
-      renderTicket();
-      await loadOpenTabs();
-      alert("✅ Check Closed via " + closedMethod + " (" + fmt(total) + ")" + (ccTipVal > 0 ? " + " + fmt(ccTipVal) + " CC Tip Auto-Claimed!" : "!"));
-    };
-// =========================================================================
-    // CHECK OWNERSHIP FILTER & MANAGER MASTER OPEN CHECKS BOARD
-    // =========================================================================
-    function isCurrentUserMgmt() {
-      if (!currentUser) return false;
-      const role = currentUser.role_tier || currentUser.role || "";
-      return OVERRIDE_TIERS.includes(role);
-    }
-
-    function getStaffNameById(staffId) {
-      if (!staffId) return "Unassigned";
-      const found = staffList.find(function(s) { return s.id === staffId; });
-      return found ? found.full_name : "Staff";
-    }
-
-    renderOpenTabsStrip = function() {
-      const strip = document.getElementById("open-tabs-strip");
-      if (!strip) return;
-
-      // Employees only see their own open checks; Management sees all
-      const visibleTabs = openTabsList.filter(function(t) {
-        if (isCurrentUserMgmt()) return true;
-        return currentUser && t.staff_id === currentUser.id;
-      });
-
-      if (!visibleTabs.length) {
-        strip.innerHTML = '<span class="text-[11px] text-slate-500">No open tabs under your PIN</span>';
-        return;
-      }
-
-      strip.innerHTML = visibleTabs.map(function(t) {
-        const active = t.id === activeOpenTabId;
-        const amt = Number(t.total_retail || t.total_amount || t.subtotal || 0);
-        const ownerTag = isCurrentUserMgmt() ? " • " + getStaffNameById(t.staff_id) : "";
-        const cls = active
-          ? "bg-amber-500 text-slate-950 border-amber-400"
-          : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800";
-        return '<button onclick="recallOpenTab(\'' + t.id + '\')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ' + cls + '">📌 ' + (t.tab_name || "Tab") + ownerTag + " (" + fmt(amt) + ")</button>";
-      }).join("");
-    };
 
     function renderManagerOpenChecks() {
       const box = document.getElementById("mgr-open-checks-list");
@@ -1805,63 +2905,250 @@
       recallOpenTab(tabId);
     }
 
-    const _prevLoadOpenTabs = loadOpenTabs;
-    loadOpenTabs = async function() {
-      await _prevLoadOpenTabs();
-      renderManagerOpenChecks();
-    };
+    function renderModularCartridgeDock(rollup, closedCount) {
+      const grid = document.getElementById("cartridge-dock-grid");
+      if (!grid) return;
+      const r = rollup || {};
+      const periodLbl = r.period || "DAILY";
+      const ozDepleted = Number(r.liquor_oz_depleted || 0).toFixed(1);
+      const liqCogs = fmt(r.liquor_cogs_burned || 0);
+      const pkgUnits = Number(r.total_packaging_units || 0);
+      const pkgCogs = fmt(r.total_packaging_cogs || 0);
+      const phantomVar = Number(r.phantom_guest_variance || 0);
+      const cvCount = Number(r.comp_void_count || 0);
+      const cvAmt = fmt(r.comp_void_dollars || 0);
+      const lowLiq = Array.isArray(r.low_par_liquor) ? r.low_par_liquor : [];
+      const lowDry = Array.isArray(r.low_par_dry_goods) ? r.low_par_dry_goods : [];
 
-    const _prevLoginStaff = loginStaff;
-    loginStaff = async function(user) {
-      await _prevLoginStaff(user);
+      const cards = [
+        {
+          key: "bar_engine_active",
+          active: Boolean(venueEntitlements.bar_engine_active),
+          title: "CARBON | BAR",
+          border: "border-amber-500/40",
+          accent: "text-amber-400",
+          subdomain: "https://bar.rehgexec.com",
+          checkout: EXTENSION_STRIPE_LINKS.BAR,
+          unlockedHtml:
+            '<div class="text-xs text-slate-200 space-y-1">' +
+              '<div><strong>' + ozDepleted + ' oz</strong> depleted (' + periodLbl + ') • Pour Burn: <strong class="text-amber-300">' + liqCogs + '</strong></div>' +
+              '<div class="text-[11px] text-rose-300 font-bold">Low-Par Bottles: ' + (lowLiq.length ? lowLiq.map(function(b) { return b.bottle_name + " (" + b.bottles_on_hand + " btl)"; }).join(", ") : "None — All backbar bottles above par") + '</div>' +
+            '</div>',
+          lockedTeaser: "🔒 LOCKED — " + ozDepleted + " oz silently depleted across " + closedCount + " closed checks (" + periodLbl + "). Unlock Live Physical-vs-Theoretical Bottle Variance, Bartender Over-Pour Rankings & Low-Par Reorder Alerts."
+        },
+        {
+          key: "kitchen_engine_active",
+          active: Boolean(venueEntitlements.kitchen_engine_active),
+          title: "CARBON | KITCHEN",
+          border: "border-emerald-500/40",
+          accent: "text-emerald-400",
+          subdomain: "https://kitchen.rehgexec.com",
+          checkout: EXTENSION_STRIPE_LINKS.KITCHEN,
+          unlockedHtml:
+            '<div class="text-xs text-slate-200 space-y-1">' +
+              '<div>Layer-1 & To-Go Units Burned: <strong>' + pkgUnits + ' units</strong> (' + pkgCogs + ')</div>' +
+              '<div class="text-[11px] text-amber-300 font-bold">Low-Par BOH SKUs: ' + (lowDry.length ? lowDry.map(function(d) { return d.item_name + " (" + d.on_hand_qty + ")"; }).join(", ") : "All BOH & Carryout disposables above par") + '</div>' +
+            '</div>',
+          lockedTeaser: "🔒 LOCKED — " + pkgUnits + " BOH & To-Go disposables tracked silently (" + periodLbl + "). Unlock Butcher Yield Tests, Plate Costing Drift & Vendor Invoice Scrubs."
+        },
+        {
+          key: "loss_engine_active",
+          active: Boolean(venueEntitlements.loss_engine_active),
+          title: "CARBON | LOSS (Exclusive Anti-Theft & Micro-Inventory Vault)",
+          border: "border-rose-500/40",
+          accent: "text-rose-400",
+          subdomain: "https://loss.rehgexec.com",
+          checkout: EXTENSION_STRIPE_LINKS.LOSS,
+          unlockedHtml:
+            '<div class="text-xs text-slate-200 space-y-1">' +
+              '<div>Model A vs. Model B Phantom Guest Variance: <strong class="text-rose-400">' + phantomVar + ' un-rung guest gap(s)</strong></div>' +
+              '<div>Extended Micro-Packaging COGS (' + periodLbl + '): <strong>' + pkgCogs + '</strong> • Comps/Voids: <strong>' + cvCount + ' (' + cvAmt + ')</strong></div>' +
+            '</div>',
+          lockedTeaser: "🔒 LOCKED — " + cvCount + " Override(s) (" + cvAmt + ") & silent Model A vs. Model B Phantom Guest telemetry captured (" + periodLbl + "). Unlock Phantom Guest Collusion Heatmaps & Daily/Weekly/Monthly Micro-Packaging Inventory COGS."
+        },
+        {
+          key: "portal_active",
+          active: Boolean(venueEntitlements.portal_active),
+          title: "CARBON | SOVEREIGN PORTAL",
+          border: "border-yellow-500/40",
+          accent: "rehg-gold",
+          subdomain: "https://portal.rehgexec.com",
+          checkout: EXTENSION_STRIPE_LINKS.PORTAL,
+          unlockedHtml:
+            '<div class="text-xs text-slate-200">Multi-role Executive C-Suite Governance (`PIN` / `PIN-M` / `PIN-MKT`) & Nightly Z-Tape Cloud Vault live-synced (`CARBON_POS_LIVE`).</div>',
+          lockedTeaser: "🔒 LOCKED — Sync nightly Z-Reports, role-isolated Owner/GM/Marketing PIN dashboards & multi-unit P&L governance directly to portal.rehgexec.com."
+        }
+      ];
+
+      grid.innerHTML = cards.map(function(c) {
+        if (c.active) {
+          return '<div class="titanium-panel rounded-2xl p-4 border ' + c.border + ' flex flex-col justify-between gap-3">' +
+            '<div>' +
+              '<div class="flex items-center justify-between gap-2 mb-2">' +
+                '<span class="text-xs font-black uppercase tracking-wider ' + c.accent + '">' + c.title + '</span>' +
+                '<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black">● LIVE AUTOPILOT</span>' +
+              '</div>' +
+              c.unlockedHtml +
+            '</div>' +
+            '<a href="' + c.subdomain + '" target="_blank" rel="noopener" class="block text-center py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-black text-white transition">↗ Open ' + c.subdomain.replace("https://", "") + '</a>' +
+          '</div>';
+        }
+        return '<div class="titanium-panel rounded-2xl p-4 border ' + c.border + ' flex flex-col justify-between gap-3">' +
+          '<div>' +
+            '<div class="flex items-center justify-between gap-2 mb-2">' +
+              '<span class="text-xs font-black uppercase tracking-wider ' + c.accent + '">' + c.title + '</span>' +
+              '<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400 text-[10px] font-black">$497 Standalone • $49.99/mo Sync</span>' +
+            '</div>' +
+            '<p class="text-xs text-slate-300 leading-relaxed">' + c.lockedTeaser + '</p>' +
+          '</div>' +
+          '<a href="' + c.checkout + '" target="_blank" rel="noopener" class="block text-center py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase transition">⚡ Unlock Live Cartridge ($497 / $49.99 mo)</a>' +
+        '</div>';
+      }).join("");
+    }
+
+    async function loadExecutionEngines() {
       await loadOpenTabs();
-    };
+      const period = document.getElementById("cogs-rollup-period") ? document.getElementById("cogs-rollup-period").value : "DAILY";
 
-    const _prevLoadEngines = loadExecutionEngines;
-    loadExecutionEngines = async function() {
-      await loadOpenTabs();
-      await _prevLoadEngines();
+      const [ordRes, shiftRes, auditRes, zRes, entRes, rollupRes, dispatchesRes] = await Promise.all([
+        db.from("orders").select("*").eq("venue_id", VENUE_ID),
+        db.from("timeclock_shifts").select("*").eq("venue_id", VENUE_ID),
+        db.from("governance_audits").select("*").eq("venue_id", VENUE_ID),
+        db.from("eod_reports").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(6),
+        db.from("venue_entitlements").select("*").eq("venue_id", VENUE_ID).maybeSingle(),
+        db.rpc("rpc_inventory_cogs_rollup", { p_venue_id: VENUE_ID, p_period: period }),
+        db.from("owner_alert_dispatches").select("*").eq("venue_id", VENUE_ID).order("created_at", { ascending: false }).limit(5)
+      ]);
+
+      if (entRes && entRes.data) venueEntitlements = Object.assign(venueEntitlements, entRes.data);
+
+      const allOrders = ordRes.data || [];
+      const closedOrders = allOrders.filter(function(o) { return (o.status || "CLOSED") === "CLOSED"; });
+      const openOrders = allOrders.filter(function(o) { return o.status === "OPEN"; });
+
+      const grossSales = closedOrders.reduce(function(s, o) { return s + Number(o.total_retail || o.subtotal || o.total_amount || 0); }, 0);
+      const totalCogs = closedOrders.reduce(function(s, o) { return s + Number(o.total_cogs || 0); }, 0);
+      const cogsPct = grossSales > 0 ? (totalCogs / grossSales) * 100 : 0;
+
+      let laborCost = 0;
+      let declaredTips = 0;
+      (shiftRes.data || []).forEach(function(sh) {
+        const start = new Date(sh.clock_in).getTime();
+        const end = sh.clock_out ? new Date(sh.clock_out).getTime() : Date.now();
+        const hrs = Math.max(0, (end - start) / 3600000);
+        laborCost += hrs * Number(sh.hourly_rate || 0);
+        declaredTips += Number(sh.cash_tips || 0) + Number(sh.cc_tips || 0);
+      });
+
+      const overrideRows = (auditRes.data || []).filter(function(a) {
+        const t = (a.action_type || a.audit_type || "").toUpperCase();
+        return t === "VOID_TICKET" || t === "COMP_ITEM" || t === "COMP_DISC";
+      });
+      const voidsCompsDollars = overrideRows.reduce(function(s, a) { return s + Number(a.amount_affected || 0); }, 0);
+
+      const netMargin = grossSales - totalCogs - laborCost;
+      latestEngineSnapshot = {
+        gross_sales: grossSales,
+        total_cogs: totalCogs,
+        net_margin: netMargin,
+        cogs_pct: cogsPct,
+        labor_cost: laborCost,
+        declared_tips: declaredTips,
+        voids_comps_total: voidsCompsDollars,
+        closed_checks_count: closedOrders.length,
+        open_tabs_carried: openOrders.length
+      };
+
+      document.getElementById("eng-gross-sales").textContent = fmt(grossSales);
+      document.getElementById("eng-checks-count").textContent = closedOrders.length + " closed checks • " + openOrders.length + " open tabs";
+      document.getElementById("eng-total-cogs").textContent = fmt(totalCogs);
+
+      const guardEl = document.getElementById("eng-cogs-guardrail");
+      const healthy = cogsPct <= 18.0;
+      guardEl.textContent = cogsPct.toFixed(1) + "% Blended COGS (" + (healthy ? "✓ WITHIN 14%/22% GUARDRAIL" : "⚠ ABOVE 18% GUARDRAIL") + ")";
+      guardEl.className = "text-[11px] font-bold " + (healthy ? "text-emerald-400" : "text-rose-400");
+
+      document.getElementById("eng-labor-cost").textContent = fmt(laborCost);
+      document.getElementById("eng-tips-total").textContent = "Claimed Tips: " + fmt(declaredTips);
+      document.getElementById("eng-net-margin").textContent = fmt(netMargin);
+      document.getElementById("eng-voids-total").textContent = "Overrides: " + overrideRows.length + " (" + fmt(voidsCompsDollars) + ")";
+
+      renderModularCartridgeDock(rollupRes ? rollupRes.data : null, closedOrders.length);
       renderManagerOpenChecks();
-    };
-// =========================================================================
-    // FIX MENU ITEM CREATION (AUTO-MAP MANDATORY DEPARTMENT COLUMN)
-    // =========================================================================
-    createMenuItem = async function() {
-      const name = document.getElementById("add-item-name").value.trim();
-      const category = document.getElementById("add-item-cat").value;
-      const price = parseFloat(document.getElementById("add-item-price").value || "0");
-      const wholesale_cogs = parseFloat(document.getElementById("add-item-cogs").value || "0");
-      const speed_screen_priority = parseInt(document.getElementById("add-item-priority").value || "10");
-      if (!name) return alert("Enter an item name.");
 
-      const catUpper = (category || "SPIRITS").toUpperCase();
-      const department = (catUpper === "KITCHEN" || catUpper === "FOOD") ? "FOOD" : "BAR";
+      const feedBox = document.getElementById("owner-alerts-feed");
+      if (feedBox) {
+        const alerts = (dispatchesRes && dispatchesRes.data) ? dispatchesRes.data : [];
+        feedBox.innerHTML = alerts.length
+          ? alerts.map(function(al) {
+              const dt = al.created_at ? new Date(al.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+              const crit = al.severity === "CRITICAL";
+              return '<div class="rounded-lg px-3 py-2 border flex items-center justify-between gap-2 ' +
+                (crit ? "bg-rose-950/40 border-rose-500/50 text-rose-200" : "bg-slate-950 border-slate-800 text-slate-300") + '">' +
+                '<span class="font-bold">' + al.headline + '</span>' +
+                '<span class="text-[10px] text-slate-400 whitespace-nowrap">' + dt + '</span></div>';
+            }).join("")
+          : '<div class="text-[11px] text-slate-500">No hourly pulses or comp/void tripwire dispatches logged yet.</div>';
+      }
 
-      const { data, error } = await db.from("menu_items").insert({
+      const itemMap = {};
+      closedOrders.forEach(function(o) {
+        (o.items || []).forEach(function(i) {
+          const key = i.name || "Item";
+          if (!itemMap[key]) itemMap[key] = { name: key, qty: 0, rev: 0, cogs: 0 };
+          const q = Number(i.qty || 1);
+          itemMap[key].qty += q;
+          itemMap[key].rev += Number(i.price || 0) * q;
+          itemMap[key].cogs += Number(i.cogs || i.wholesale_cogs || 0) * q;
+        });
+      });
+
+      const topItems = Object.values(itemMap).sort(function(a, b) { return b.rev - a.rev; }).slice(0, 6);
+      document.getElementById("eng-top-items").innerHTML = topItems.length
+        ? topItems.map(function(it) {
+            const mPct = it.rev > 0 ? (((it.rev - it.cogs) / it.rev) * 100).toFixed(0) : 100;
+            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 flex items-center justify-between">' +
+              '<div><span class="font-bold text-white">' + it.qty + "x " + it.name + '</span><span class="text-[11px] text-slate-400 ml-2">COGS: ' + fmt(it.cogs) + '</span></div>' +
+              '<div><span class="font-black text-emerald-400">' + fmt(it.rev) + '</span><span class="text-[10px] text-slate-400 ml-1.5">(' + mPct + '% margin)</span></div></div>';
+          }).join("")
+        : '<p class="text-slate-500">Close checks on the register to populate live product telemetry.</p>';
+
+      const zReports = zRes.data || [];
+      document.getElementById("eng-eod-history").innerHTML = zReports.length
+        ? zReports.map(function(z) {
+            const dt = z.created_at ? new Date(z.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+            return '<div class="rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 space-y-0.5">' +
+              '<div class="flex justify-between font-bold"><span class="text-emerald-400">Z-Report • ' + dt + '</span><span class="text-white">Sales: ' + fmt(z.gross_sales) + '</span></div>' +
+              '<div class="text-[11px] text-slate-400">COGS: ' + Number(z.cogs_pct || 0).toFixed(1) + "% • Net: " + fmt(z.net_margin) + " • Closed by " + z.closed_by + '</div></div>';
+          }).join("")
+        : '<p class="text-slate-500">No EOD Z-Reports closed yet.</p>';
+    }
+
+    async function runNightlyEodCloseout() {
+      if (!currentUser) return showCarbonToast("Log in first.", "warn");
+      if (!latestEngineSnapshot) await loadExecutionEngines();
+      const warn = latestEngineSnapshot.open_tabs_carried > 0
+        ? "\nWARNING: " + latestEngineSnapshot.open_tabs_carried + " open tab(s) still unclosed."
+        : "";
+      const notes = prompt(
+        "RUN NIGHTLY EOD Z-REPORT\nGross Sales: " + fmt(latestEngineSnapshot.gross_sales) +
+        " | COGS: " + latestEngineSnapshot.cogs_pct.toFixed(1) + "% | Net: " + fmt(latestEngineSnapshot.net_margin) +
+        warn + "\n\nEnter optional EOD manager notes:"
+      );
+      if (notes === null) return;
+
+      const { error } = await db.from("eod_reports").insert(Object.assign({
         venue_id: VENUE_ID,
-        name: name,
-        department: department,
-        category: category,
-        price: price,
-        wholesale_cogs: wholesale_cogs,
-        speed_screen_priority: speed_screen_priority,
-        packaging_recipe: department === "FOOD"
-          ? [{ item: "Food Boat / Basket", qty: 1 }, { item: "Black Napkin", qty: 2 }]
-          : [{ item: "12oz Rocks Cup", qty: 1 }, { item: "Black Bev Nap", qty: 1 }]
-      }).select().single();
+        closed_by: currentUser.full_name,
+        closed_by_tier: currentUser.role_tier || currentUser.role || "Owner",
+        notes: notes.trim() || "Standard nightly batch closeout"
+      }, latestEngineSnapshot));
 
-      if (error) return alert("Error adding item: " + error.message);
+      if (error) return showCarbonToast("EOD Z-Report error: " + error.message, "error");
+      await loadExecutionEngines();
+      showCarbonToast("✅ Nightly EOD Z-Report locked and archived to Supabase!", "ok");
+    }
 
-      menuItems.push(data);
-      menuItems.sort(function(a, b) { return (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99); });
-      renderMenuGrid();
-      renderAdminMenuList();
-      document.getElementById("add-item-name").value = "";
-      document.getElementById("add-item-price").value = "";
-      document.getElementById("add-item-cogs").value = "";
-      alert("✅ '" + name + "' (" + department + ") added live to Carbon Terminal!");
-    };
-    
     initCarbonOS();
   </script>
 </body>
