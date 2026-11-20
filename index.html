@@ -288,8 +288,51 @@
   <!-- ===================================================================== -->
   <!-- VIEW 3: ON-THE-FLY MENU, COGS & 86 EDITOR (MANAGER / ADMIN / OWNER)   -->
   <!-- ===================================================================== -->
-  <section id="view-loader" class="hidden flex-1 p-6 max-w-5xl w-full mx-auto">
-    <div class="titanium-panel rounded-2xl p-6 space-y-6">
+  <section id="view-loader" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
+    <!-- ADD ITEM + ADD STAFF FORMS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- ADD MENU ITEM CARD -->
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">➕ Add New Menu Item</h3>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <input id="add-item-name" type="text" placeholder="Item Name (e.g. Casamigos Repo)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <select id="add-item-cat" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="SPIRITS">SPIRITS</option>
+            <option value="VIP SERVICE">VIP SERVICE</option>
+            <option value="KITCHEN">KITCHEN</option>
+            <option value="BEER / WINE">BEER / WINE</option>
+          </select>
+          <input id="add-item-priority" type="number" placeholder="Speed Order (1-99)" value="10" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-price" type="number" step="0.01" placeholder="Retail Price ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-item-cogs" type="number" step="0.01" placeholder="Owner COGS ($)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+        </div>
+        <button onclick="createMenuItem()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase">Save Item to Terminal</button>
+      </div>
+
+      <!-- ADD STAFF & PIN CARD -->
+      <div class="titanium-panel rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-black uppercase tracking-wider text-amber-400">👥 Add Staff & 4-Digit PIN</h3>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <input id="add-staff-name" type="text" placeholder="Full Name (e.g. Jordan B.)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <input id="add-staff-title" type="text" placeholder="Title (e.g. Night Bartender)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          <select id="add-staff-tier" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="Bartender">Bartender</option>
+            <option value="Server">Server</option>
+            <option value="Manager">Manager</option>
+            <option value="Admin">Admin / GM</option>
+            <option value="Owner">Owner</option>
+            <option value="Barback">Barback (Timeclock Only)</option>
+            <option value="General_Labor">Door / Host (Timeclock Only)</option>
+          </select>
+          <input id="add-staff-pin" type="text" maxlength="4" placeholder="4-Digit PIN (e.g. 5555)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold" />
+          <input id="add-staff-rate" type="number" step="0.01" placeholder="Hourly Wage ($)" value="15.00" class="col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+        </div>
+        <button onclick="createStaffMember()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase">Save Staff Profile & Activate PIN</button>
+      </div>
+    </div>
+
+    <!-- EXISTING LIVE 86 & DAILY SPECIAL BOARD -->
+    <div class="titanium-panel rounded-2xl p-6 space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <h2 class="text-xl font-black text-white">Live Menu, Owner's Skin COGS & 86'd Manager</h2>
@@ -300,10 +343,7 @@
           <button onclick="updateDailySpecial()" class="px-3 py-2 rounded-lg bg-rehg-gold text-slate-950 font-bold text-xs">Update Special</button>
         </div>
       </div>
-
-      <div id="admin-menu-list" class="space-y-2">
-        <!-- Populated dynamically -->
-      </div>
+      <div id="admin-menu-list" class="space-y-2"></div>
     </div>
   </section>
 
@@ -915,7 +955,65 @@
         </div>
       `).join("") || "<div>No audit logs yet.</div>";
     }
+async function createMenuItem() {
+      const name = document.getElementById("add-item-name").value.trim();
+      const category = document.getElementById("add-item-cat").value;
+      const price = parseFloat(document.getElementById("add-item-price").value || "0");
+      const wholesale_cogs = parseFloat(document.getElementById("add-item-cogs").value || "0");
+      const speed_screen_priority = parseInt(document.getElementById("add-item-priority").value || "10");
 
+      if (!name) return alert("Enter an item name.");
+
+      const { data, error } = await db.from("menu_items").insert({
+        venue_id: VENUE_ID,
+        name,
+        category,
+        price,
+        wholesale_cogs,
+        speed_screen_priority,
+        packaging_recipe: [{ item: "12oz Rocks Cup", qty: 1 }, { item: "Black Bev Nap", qty: 1 }]
+      }).select().single();
+
+      if (error) return alert("Error adding item: " + error.message);
+
+      menuItems.push(data);
+      menuItems.sort((a, b) => (a.speed_screen_priority || 99) - (b.speed_screen_priority || 99));
+      renderMenuGrid();
+      renderAdminMenuList();
+      document.getElementById("add-item-name").value = "";
+      document.getElementById("add-item-price").value = "";
+      document.getElementById("add-item-cogs").value = "";
+      alert(`✅ "${name}" added live to Carbon Terminal!`);
+    }
+
+    async function createStaffMember() {
+      const full_name = document.getElementById("add-staff-name").value.trim();
+      const custom_title = document.getElementById("add-staff-title").value.trim();
+      const role_tier = document.getElementById("add-staff-tier").value;
+      const pin_code = document.getElementById("add-staff-pin").value.trim();
+      const hourly_rate = parseFloat(document.getElementById("add-staff-rate").value || "15");
+
+      if (!full_name || pin_code.length !== 4) return alert("Enter full name and a 4-digit PIN.");
+      if (staffList.some(s => s.pin_code === pin_code)) return alert("That 4-digit PIN is already assigned.");
+
+      const { data, error } = await db.from("staff_users").insert({
+        venue_id: VENUE_ID,
+        full_name,
+        role: role_tier,
+        role_tier,
+        custom_title,
+        pin_code,
+        hourly_rate
+      }).select().single();
+
+      if (error) return alert("Error adding staff: " + error.message);
+
+      staffList.push(data);
+      document.getElementById("add-staff-name").value = "";
+      document.getElementById("add-staff-title").value = "";
+      document.getElementById("add-staff-pin").value = "";
+      alert(`✅ ${full_name} (${role_tier}) activated with PIN ${pin_code}!`);
+    }
     initCarbonOS();
   </script>
 </body>
