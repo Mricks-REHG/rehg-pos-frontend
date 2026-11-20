@@ -44,6 +44,10 @@
       <button onclick="switchTab('terminal')" id="tab-terminal" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition">⚡ Carbon Terminal</button>
       <button onclick="switchTab('timeclock')" id="tab-timeclock" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">⏱️ Timeclock & Tips</button>
       <button onclick="switchTab('loader')" id="tab-loader" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">📦 Menu & 86 Editor</button>
+      <button onclick="switchTab('kds')" id="tab-kds" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5">
+          <span>🔥 KDS & Bar Prep</span>
+          <span id="kds-badge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">0</span>
+        </button>
       <button onclick="switchTab('engines')" id="tab-engines" class="hidden px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 text-amber-300 border border-amber-500/40 hover:border-amber-400 transition">🏛️ Carbon Execution Engines</button>
     </nav>
 
@@ -242,7 +246,12 @@
             <button onclick="requestManagerOverride('VOID_TICKET')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-rose-300">🔒 Void Check</button>
             <button onclick="requestManagerOverride('TRANSFER_CHECK')" class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-bold text-sky-300">🔒 Transfer</button>
           </div>
-
+          <!-- PILLAR 2: TAB NAME + HOLD & SEND TO KDS / BAR -->
+          <div class="grid grid-cols-3 gap-2">
+            <input id="active-tab-name" type="text" placeholder="Tab / VIP Table (e.g. Booth 1)" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold" />
+            <button onclick="holdOpenTab()" class="py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-black text-xs uppercase transition">📌 Hold Tab</button>
+          </div>
+          <div id="open-tabs-strip" class="flex flex-wrap gap-1.5"></div>
           <button onclick="closeAndPushCheck()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition">
             💳 CLOSE CHECK & PUSH TO EXECUTION ENGINES
           </button>
@@ -346,7 +355,36 @@
       <div id="admin-menu-list" class="space-y-2"></div>
     </div>
   </section>
+<!-- ===================================================================== -->
+  <!-- PILLAR 2: LIVE KDS (KITCHEN) & SERVICE BAR PREP QUEUE                 -->
+  <!-- ===================================================================== -->
+  <section id="view-kds" class="hidden flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div>
+        <h2 class="text-xl font-black text-white">🔥 Live KDS & Service Bar Prep Queue</h2>
+        <p class="text-xs text-slate-400">Real-time BOH kitchen & service well routing with one-tap bump timers</p>
+      </div>
+      <button onclick="loadPrepTickets()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700">↻ Refresh Queue</button>
+    </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="titanium-panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-sm font-black uppercase tracking-wider text-amber-400">🍳 Kitchen Display (BOH)</h3>
+          <span id="kds-kitchen-count" class="text-xs font-bold text-slate-400">0 active</span>
+        </div>
+        <div id="kds-kitchen-list" class="space-y-3"></div>
+      </div>
+
+      <div class="titanium-panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-sm font-black uppercase tracking-wider text-emerald-400">🍸 Service Bar & VIP Well</h3>
+          <span id="kds-bar-count" class="text-xs font-bold text-slate-400">0 active</span>
+        </div>
+        <div id="kds-bar-list" class="space-y-3"></div>
+      </div>
+    </div>
+  </section>
   <!-- ===================================================================== -->
   <!-- VIEW 4: REHG CARBON EXECUTION ENGINES (OWNER & ADMIN C-SUITE)         -->
   <!-- ===================================================================== -->
@@ -1014,6 +1052,175 @@ async function createMenuItem() {
       document.getElementById("add-staff-pin").value = "";
       alert(`✅ ${full_name} (${role_tier}) activated with PIN ${pin_code}!`);
     }
+    // =========================================================================
+    // PILLAR 2: OPEN TABS, KDS (KITCHEN) & SERVICE BAR ROUTING ENGINE
+    // =========================================================================
+    let openTabsList = [];
+    let activeOpenTabId = null;
+    let prepTicketsList = [];
+
+    async function loadOpenTabs() {
+      const { data } = await db.from("orders")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .eq("status", "OPEN")
+        .order("created_at", { ascending: true });
+      openTabsList = data || [];
+      renderOpenTabsStrip();
+    }
+
+    function renderOpenTabsStrip() {
+      const strip = document.getElementById("open-tabs-strip");
+      if (!strip) return;
+      if (!openTabsList.length) {
+        strip.innerHTML = `<span class="text-[11px] text-slate-500">No open bar/VIP tabs</span>`;
+        return;
+      }
+      strip.innerHTML = openTabsList.map(t => {
+        const active = t.id === activeOpenTabId;
+        return `<button onclick="recallOpenTab('${t.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${active ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800'}">
+          📌 ${t.tab_name || 'Tab'} ($${Number(t.total_retail || 0).toFixed(2)})
+        </button>`;
+      }).join("");
+    }
+
+    async function routeItemsToPrep(orderId, tabName, items) {
+      if (!items || !items.length) return;
+      const kitchenItems = items.filter(i => (i.category || "").toUpperCase() === "KITCHEN");
+      const barItems = items.filter(i => (i.category || "").toUpperCase() !== "KITCHEN");
+      const serverName = currentStaff ? currentStaff.full_name : "Terminal";
+
+      const tickets = [];
+      if (kitchenItems.length) {
+        tickets.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "KITCHEN", items: kitchenItems, server_name: serverName });
+      }
+      if (barItems.length) {
+        tickets.push({ venue_id: VENUE_ID, order_id: orderId, tab_name: tabName, station: "SERVICE_BAR", items: barItems, server_name: serverName });
+      }
+      if (tickets.length) {
+        await db.from("prep_tickets").insert(tickets);
+        await loadPrepTickets();
+      }
+    }
+
+    async function holdOpenTab() {
+      if (!currentTicket.length) return alert("Add items to the ticket before holding a tab.");
+      const tabInput = document.getElementById("active-tab-name");
+      const tabName = (tabInput.value.trim() || `Bar Tab #${openTabsList.length + 1}`);
+      const totalRetail = currentTicket.reduce((s, i) => s + (Number(i.price || 0) * i.qty), 0);
+      const totalCogs = currentTicket.reduce((s, i) => s + (Number(i.wholesale_cogs || 0) * i.qty), 0);
+
+      let orderId = activeOpenTabId;
+      if (activeOpenTabId) {
+        await db.from("orders").update({
+          tab_name: tabName,
+          items: currentTicket,
+          total_retail: totalRetail,
+          total_cogs: totalCogs
+        }).eq("id", activeOpenTabId);
+      } else {
+        const { data, error } = await db.from("orders").insert({
+          venue_id: VENUE_ID,
+          staff_id: currentStaff ? currentStaff.id : null,
+          tab_name: tabName,
+          order_type: "OPEN_TAB",
+          status: "OPEN",
+          items: currentTicket,
+          total_retail: totalRetail,
+          total_cogs: totalCogs
+        }).select().single();
+        if (error) return alert("Error holding tab: " + error.message);
+        orderId = data.id;
+      }
+
+      await routeItemsToPrep(orderId, tabName, currentTicket);
+      currentTicket = [];
+      activeOpenTabId = null;
+      tabInput.value = "";
+      renderTicket();
+      await loadOpenTabs();
+      alert(`📌 Tab "${tabName}" saved & routed to KDS / Service Bar!`);
+    }
+
+    function recallOpenTab(tabId) {
+      const tab = openTabsList.find(t => t.id === tabId);
+      if (!tab) return;
+      activeOpenTabId = tab.id;
+      currentTicket = Array.isArray(tab.items) ? JSON.parse(JSON.stringify(tab.items)) : [];
+      document.getElementById("active-tab-name").value = tab.tab_name || "";
+      renderTicket();
+      renderOpenTabsStrip();
+    }
+
+    async function loadPrepTickets() {
+      const { data } = await db.from("prep_tickets")
+        .select("*")
+        .eq("venue_id", VENUE_ID)
+        .eq("status", "PENDING")
+        .order("created_at", { ascending: true });
+      prepTicketsList = data || [];
+      renderPrepQueues();
+    }
+
+    function renderPrepQueues() {
+      const kitchen = prepTicketsList.filter(t => t.station === "KITCHEN");
+      const bar = prepTicketsList.filter(t => t.station !== "KITCHEN");
+
+      const badge = document.getElementById("kds-badge");
+      if (badge) {
+        badge.textContent = prepTicketsList.length;
+        badge.classList.toggle("hidden", prepTicketsList.length === 0);
+      }
+
+      const kCount = document.getElementById("kds-kitchen-count");
+      const bCount = document.getElementById("kds-bar-count");
+      if (kCount) kCount.textContent = `${kitchen.length} active`;
+      if (bCount) bCount.textContent = `${bar.length} active`;
+
+      const renderCard = (t, accent) => {
+        const mins = Math.max(0, Math.floor((Date.now() - new Date(t.created_at).getTime()) / 60000));
+        const itemsHtml = (t.items || []).map(i => `<div class="flex justify-between text-xs text-white"><span><strong class="${accent}">${i.qty}x</strong> ${i.name}</span></div>`).join("");
+        return `<div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-black text-white">${t.tab_name}</span>
+              <span class="ml-2 text-[10px] text-slate-400">by ${t.server_name || 'Staff'} • ${mins}m ago</span>
+            </div>
+            <button onclick="bumpPrepTicket('${t.id}')" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] uppercase">✓ Bump</button>
+          </div>
+          <div class="space-y-1 border-t border-slate-800/80 pt-2">${itemsHtml}</div>
+        </div>`;
+      };
+
+      const kList = document.getElementById("kds-kitchen-list");
+      const bList = document.getElementById("kds-bar-list");
+      if (kList) kList.innerHTML = kitchen.length ? kitchen.map(t => renderCard(t, "text-amber-400")).join("") : `<p class="text-xs text-slate-500">No active kitchen tickets.</p>`;
+      if (bList) bList.innerHTML = bar.length ? bar.map(t => renderCard(t, "text-emerald-400")).join("") : `<p class="text-xs text-slate-500">No active service bar tickets.</p>`;
+    }
+
+    async function bumpPrepTicket(ticketId) {
+      await db.from("prep_tickets").update({ status: "BUMPED", bumped_at: new Date().toISOString() }).eq("id", ticketId);
+      await loadPrepTickets();
+    }
+
+    // Wrap closeAndPushCheck so closing a tab marks it CLOSED and routes prep tickets
+    const _origCloseAndPushCheck = closeAndPushCheck;
+    closeAndPushCheck = async function() {
+      const tabName = (document.getElementById("active-tab-name")?.value.trim() || "Quick Pour");
+      const itemsSnapshot = JSON.parse(JSON.stringify(currentTicket));
+      const closingTabId = activeOpenTabId;
+      await _origCloseAndPushCheck();
+      if (closingTabId) {
+        await db.from("orders").update({ status: "CLOSED", tab_name: tabName }).eq("id", closingTabId);
+        activeOpenTabId = null;
+      }
+      if (document.getElementById("active-tab-name")) document.getElementById("active-tab-name").value = "";
+      await routeItemsToPrep(closingTabId, tabName, itemsSnapshot);
+      await loadOpenTabs();
+    };
+
+    // Boot Pillar 2 queues automatically
+    setTimeout(() => { loadOpenTabs(); loadPrepTickets(); }, 1200);
     initCarbonOS();
   </script>
 </body>
