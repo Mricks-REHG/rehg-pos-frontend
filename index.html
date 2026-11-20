@@ -235,7 +235,17 @@
             <span class="text-xs font-bold text-emerald-400">💳 CC Tip (Auto-Claimed to Shift):</span>
             <input id="ticket-cc-tip" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-xs font-black text-white" />
           </div>
+<!-- PAYMENT TENDER SELECTOR (CARD VS CASH) -->
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setPaymentMethod('CARD')" id="pay-btn-CARD" class="py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition">💳 Credit / Debit Card</button>
+            <button onclick="setPaymentMethod('CASH')" id="pay-btn-CASH" class="py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition">💵 Cash Tender</button>
+          </div>
 
+          <div id="cc-tip-row" class="flex items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            <span class="text-xs font-bold text-emerald-400">💳 CC Tip (Auto-Claimed to Shift):</span>
+            <input id="ticket-cc-tip" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-right text-xs font-black text-white" />
+          </div>
+          
           <button onclick="closeAndPushCheck()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition">
             💳 CLOSE CHECK & PUSH TO EXECUTION ENGINES
           </button>
@@ -427,7 +437,17 @@
         <div id="eng-voids-total" class="text-[11px] text-rose-400 font-bold">Voids/Comps: $0.00</div>
       </div>
     </div>
-
+<!-- MASTER ALL OPEN CHECKS BOARD (MANAGER / ADMIN / OWNER) -->
+    <div class="titanium-panel rounded-2xl p-5 space-y-3 border border-amber-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-black uppercase tracking-wider text-amber-400">📌 Master All Open Checks (Venue-Wide Manager View)</h3>
+          <p class="text-[11px] text-slate-400">Bartenders & servers only see their own open tabs; managers monitor and recall all active house checks here</p>
+        </div>
+        <span id="mgr-open-checks-badge" class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-black">0 Open</span>
+      </div>
+      <div id="mgr-open-checks-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs"></div>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="titanium-panel rounded-2xl p-5 space-y-3">
         <h3 class="text-sm font-black uppercase tracking-wider text-white">📊 Top-Performing Menu Items (Retail vs COGS)</h3>
@@ -1597,7 +1617,215 @@
       _baseRenderMenuGrid();
       menuItems = fullMenuBackup;
     };
+// =========================================================================
+    // PAYMENT TENDER ENGINE (CARD VS CASH)
+    // =========================================================================
+    let activePaymentMethod = "CARD";
 
+    function setPaymentMethod(method) {
+      activePaymentMethod = method;
+      const btnCard = document.getElementById("pay-btn-CARD");
+      const btnCash = document.getElementById("pay-btn-CASH");
+      const ccRow = document.getElementById("cc-tip-row");
+      const ccInput = document.getElementById("ticket-cc-tip");
+
+      if (method === "CASH") {
+        if (btnCash) btnCash.className = "py-2 rounded-xl text-xs font-black bg-emerald-500 text-slate-950 border border-emerald-400 transition";
+        if (btnCard) btnCard.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+        if (ccRow) ccRow.classList.add("hidden");
+        if (ccInput) ccInput.value = "";
+      } else {
+        if (btnCard) btnCard.className = "py-2 rounded-xl text-xs font-black bg-sky-500 text-slate-950 border border-sky-400 transition";
+        if (btnCash) btnCash.className = "py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-slate-500 transition";
+        if (ccRow) ccRow.classList.remove("hidden");
+      }
+    }
+
+    closeAndPushCheck = async function() {
+      if (ticket.length === 0) return alert("Ring at least one item before closing check.");
+
+      const tabName = document.getElementById("active-tab-name").value.trim() || document.getElementById("ticket-tab-name").value.trim() || "Bar Walk-In";
+      const subtotal = ticket.reduce(function(s, i) { return s + (isOwnerSkinActive ? Number(i.cogs || 0) : Number(i.price || 0)) * Number(i.qty || 1); }, 0);
+      const totalCogs = ticket.reduce(function(s, i) { return s + Number(i.cogs || 0) * Number(i.qty || 1); }, 0);
+      const tax = isOwnerSkinActive ? 0 : subtotal * 0.08;
+      const total = subtotal + tax;
+      const ccTipVal = activePaymentMethod === "CARD" ? Math.max(0, parseFloat(document.getElementById("ticket-cc-tip").value || "0")) : 0;
+      const itemsSnapshot = JSON.parse(JSON.stringify(ticket));
+
+      let orderId = activeOpenTabId;
+      if (activeOpenTabId) {
+        const { error } = await db.from("orders").update({
+          tab_name: tabName,
+          payment_method: activePaymentMethod,
+          cc_tip: ccTipVal,
+          status: "CLOSED",
+          items: itemsSnapshot,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: total,
+          total_retail: subtotal,
+          total_cogs: totalCogs
+        }).eq("id", activeOpenTabId);
+        if (error) return alert("Error closing tab: " + error.message);
+      } else {
+        const { data, error } = await db.from("orders").insert({
+          venue_id: VENUE_ID,
+          staff_id: currentUser ? currentUser.id : null,
+          tab_name: tabName,
+          service_mode: isOwnerSkinActive ? "OWNER_SKIN" : serviceMode,
+          order_type: "BAR_QUICK",
+          payment_method: activePaymentMethod,
+          cc_tip: ccTipVal,
+          guest_count_stated: guestCountStated,
+          guest_count_calculated: Math.max(1, ticket.length),
+          is_owner_skin: isOwnerSkinActive,
+          items: itemsSnapshot,
+          subtotal: subtotal,
+          tax: tax,
+          total_amount: total,
+          total_retail: subtotal,
+          total_cogs: totalCogs,
+          status: "CLOSED"
+        }).select().single();
+        if (error) return alert("Error pushing check: " + error.message);
+        orderId = data.id;
+        await routeItemsToPrep(orderId, tabName, itemsSnapshot);
+      }
+
+      if (ccTipVal > 0 && currentUser) {
+        if (!activeShiftRecord) {
+          const { data: newShift } = await db.from("timeclock_shifts").insert({
+            venue_id: VENUE_ID,
+            staff_id: currentUser.id,
+            staff_name: currentUser.full_name,
+            role_tier: currentUser.role_tier || currentUser.role || "Staff",
+            hourly_rate: Number(currentUser.hourly_rate || 0),
+            cc_tips: ccTipVal,
+            status: "ACTIVE"
+          }).select().single();
+          activeShiftRecord = newShift || null;
+        } else {
+          const updatedCc = Number(activeShiftRecord.cc_tips || 0) + ccTipVal;
+          await db.from("timeclock_shifts").update({ cc_tips: updatedCc }).eq("id", activeShiftRecord.id);
+          activeShiftRecord.cc_tips = updatedCc;
+        }
+        updateShiftBadge();
+      }
+
+      if (isOwnerSkinActive && currentUser) {
+        await db.from("governance_audits").insert({
+          venue_id: VENUE_ID,
+          audit_type: "OWNER_SKIN_CONSUMPTION",
+          severity: "INFO",
+          summary: "Owner Skin Ticket (" + fmt(total) + " at COGS) logged by " + currentUser.full_name
+        });
+      }
+
+      const closedMethod = activePaymentMethod;
+      ticket = [];
+      activeOpenTabId = null;
+      document.getElementById("ticket-cc-tip").value = "";
+      document.getElementById("active-tab-name").value = "";
+      document.getElementById("ticket-tab-name").value = "Bar Walk-In";
+      setPaymentMethod("CARD");
+      renderTicket();
+      await loadOpenTabs();
+      alert("✅ Check Closed via " + closedMethod + " (" + fmt(total) + ")" + (ccTipVal > 0 ? " + " + fmt(ccTipVal) + " CC Tip Auto-Claimed!" : "!"));
+    };
+// =========================================================================
+    // CHECK OWNERSHIP FILTER & MANAGER MASTER OPEN CHECKS BOARD
+    // =========================================================================
+    function isCurrentUserMgmt() {
+      if (!currentUser) return false;
+      const role = currentUser.role_tier || currentUser.role || "";
+      return OVERRIDE_TIERS.includes(role);
+    }
+
+    function getStaffNameById(staffId) {
+      if (!staffId) return "Unassigned";
+      const found = staffList.find(function(s) { return s.id === staffId; });
+      return found ? found.full_name : "Staff";
+    }
+
+    renderOpenTabsStrip = function() {
+      const strip = document.getElementById("open-tabs-strip");
+      if (!strip) return;
+
+      // Employees only see their own open checks; Management sees all
+      const visibleTabs = openTabsList.filter(function(t) {
+        if (isCurrentUserMgmt()) return true;
+        return currentUser && t.staff_id === currentUser.id;
+      });
+
+      if (!visibleTabs.length) {
+        strip.innerHTML = '<span class="text-[11px] text-slate-500">No open tabs under your PIN</span>';
+        return;
+      }
+
+      strip.innerHTML = visibleTabs.map(function(t) {
+        const active = t.id === activeOpenTabId;
+        const amt = Number(t.total_retail || t.total_amount || t.subtotal || 0);
+        const ownerTag = isCurrentUserMgmt() ? " • " + getStaffNameById(t.staff_id) : "";
+        const cls = active
+          ? "bg-amber-500 text-slate-950 border-amber-400"
+          : "bg-slate-900 text-amber-300 border-amber-500/40 hover:bg-slate-800";
+        return '<button onclick="recallOpenTab(\'' + t.id + '\')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ' + cls + '">📌 ' + (t.tab_name || "Tab") + ownerTag + " (" + fmt(amt) + ")</button>";
+      }).join("");
+    };
+
+    function renderManagerOpenChecks() {
+      const box = document.getElementById("mgr-open-checks-list");
+      const badge = document.getElementById("mgr-open-checks-badge");
+      if (badge) badge.textContent = openTabsList.length + " Open";
+      if (!box) return;
+
+      if (!openTabsList.length) {
+        box.innerHTML = '<div class="col-span-full text-slate-500 py-2">No open checks across the venue right now.</div>';
+        return;
+      }
+
+      box.innerHTML = openTabsList.map(function(t) {
+        const amt = Number(t.total_retail || t.total_amount || t.subtotal || 0);
+        const ownerName = getStaffNameById(t.staff_id);
+        const itemCount = Array.isArray(t.items) ? t.items.length : 0;
+        const openedAt = t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+        return '<div class="rounded-xl bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between gap-2">' +
+          '<div>' +
+            '<div class="flex items-center justify-between gap-2">' +
+              '<span class="font-black text-white text-xs">📌 ' + (t.tab_name || "Open Tab") + '</span>' +
+              '<span class="font-black text-amber-400">' + fmt(amt) + '</span>' +
+            '</div>' +
+            '<div class="text-[11px] text-slate-400 mt-1">Owner: <strong class="text-slate-200">' + ownerName + '</strong>' + (openedAt ? " • " + openedAt : "") + ' • ' + itemCount + ' item(s)</div>' +
+          '</div>' +
+          '<button onclick="managerRecallCheck(\'' + t.id + '\')" class="w-full py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-bold text-[11px] uppercase transition">⚡ Recall to Register</button>' +
+        '</div>';
+      }).join("");
+    }
+
+    function managerRecallCheck(tabId) {
+      switchTab("terminal");
+      recallOpenTab(tabId);
+    }
+
+    const _prevLoadOpenTabs = loadOpenTabs;
+    loadOpenTabs = async function() {
+      await _prevLoadOpenTabs();
+      renderManagerOpenChecks();
+    };
+
+    const _prevLoginStaff = loginStaff;
+    loginStaff = async function(user) {
+      await _prevLoginStaff(user);
+      await loadOpenTabs();
+    };
+
+    const _prevLoadEngines = loadExecutionEngines;
+    loadExecutionEngines = async function() {
+      await loadOpenTabs();
+      await _prevLoadEngines();
+      renderManagerOpenChecks();
+    };
+    
     initCarbonOS();
   </script>
 </body>
